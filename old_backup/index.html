@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>PhysicsVault — Study Dashboard & Quantum JEE Portal</title>
+  
+  <meta name="description" content="PhysicsVault — Premium JEE Notes, Habits Tracker & Pomodoro. Crack IIT JEE faster with high-fidelity study metrics." />
+  <meta name="keywords" content="JEE notes, IIT JEE preparation, study tracker, pomodoro timer, habits logs" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- Premium Web Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js" defer></script>
+</head>
+<body class="jee-vault-app">
+
+  <!-- 1. PREMIUM SPLASH SCREEN LOADER -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo">⚛ PhysicsVault</div>
+      <div class="splash-sub">Initializing quantum study chamber...</div>
+      <div class="splash-track"><div id="loadBar" class="splash-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Fixed Quantum Mechanics Canvas Visualizer -->
+  <canvas id="quantum-scroll-canvas"></canvas>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- SECTION 1: LANDING HERO                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="hero-landing" class="landing-section">
+    <div class="mesh-grid"></div>
+
+    <div class="hero-content">
+      <div class="badge-glow">⚛ QUANTUM PREPARATION CHAMBER</div>
+      <h1 class="hero-title">Physics<span class="gradient-text">Vault</span></h1>
+      <p class="hero-subtitle">
+        Enter a premium cognitive sanctuary engineered for high-fidelity IIT JEE preparation.
+        Master Physics, Chemistry, and Mathematics through immersive time-boxing, cosmic analytics, and real-time Gemini AI intelligence.
+      </p>
+      
+      <div class="hero-features">
+        <div class="feature-tag phy">
+          <span class="tag-glow"></span>
+          <span class="tag-label">Phy</span>
+          <span class="tag-title">Pomodoro Dashboard</span>
+        </div>
+        <div class="feature-tag chem">
+          <span class="tag-glow"></span>
+          <span class="tag-label">Chem</span>
+          <span class="tag-title">Habit Trackers</span>
+        </div>
+        <div class="feature-tag maths">
+          <span class="tag-glow"></span>
+          <span class="tag-label">Maths</span>
+          <span class="tag-title">Gemini AI Solver</span>
+        </div>
+      </div>
+
+      <p class="hero-quote">"Mankind was born on Earth. It was never meant to die here." — Cooper</p>
+
+      <div class="hero-cta-group">
+        <button id="btn-see-pricing" class="cta-btn glowing-border-btn">
+          <span>✦ See Pricing</span>
+          <span class="btn-shine"></span>
+        </button>
+        <button id="btn-launch-vault" class="ghost-btn">
+          <span>Enter Vault →</span>
+        </button>
+      </div>
+    </div>
+    
+    <div class="scroll-down-indicator" id="scroll-indicator">
+      <span class="indicator-text">Scroll to orbit</span>
+      <div class="indicator-mouse">
+        <div class="indicator-wheel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- SECTION 2: PRICING PAGE                            -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <section id="pricing-section" class="pricing-page-section">
+    <div class="mesh-grid"></div>
+
+    <!-- Top nav strip -->
+    <div class="pricing-page-nav">
+      <button class="pricing-nav-back" id="btn-pricing-back">← Back</button>
+      <span class="pricing-nav-logo">⚛ PhysicsVault</span>
+      <button class="pricing-nav-enter" id="btn-pricing-enter">Enter Vault →</button>
+    </div>
+
+    <div class="pricing-page-content">
+      <!-- Header -->
+      <div class="pricing-page-header">
+        <div class="badge-glow" style="font-size:8px; padding:4px 14px;">✦ CHOOSE YOUR TIER</div>
+        <h2 class="pricing-page-title">Invest in Your <span class="gradient-text">Rank</span></h2>
+        <p class="pricing-page-sub">First 100 students get founding member pricing — locked forever.</p>
+
+        <!-- Urgency banner -->
+        <div class="pricing-urgency-bar">
+          <span class="urgency-dot"></span>
+          <span>🚀 <strong>Launch Offer Active</strong> — Slots filling fast. Secure your price today.</span>
+        </div>
+      </div>
+
+      <!-- Pricing Cards -->
+      <div class="pricing-cards-row">
+
+        <!-- EXPLORER — Free -->
+        <div class="price-card">
+          <div class="price-card-inner">
+            <div class="price-card-head">
+              <div class="price-tier-name">Explorer</div>
+              <div class="price-tier-tagline">Try before you commit</div>
+            </div>
+            <div class="price-amount-block">
+              <div class="price-main">₹0</div>
+              <div class="price-period">/ forever</div>
+            </div>
+            <ul class="price-features">
+              <li><span class="feat-check">✦</span>Pomodoro Study Timer</li>
+              <li><span class="feat-check">✦</span>Daily Habits Tracker</li>
+              <li><span class="feat-check">✦</span>Basic Study Analytics</li>
+              <li><span class="feat-check">✦</span>Simulated AI Tutor</li>
+              <li class="feat-dim"><span class="feat-x">✕</span>Live Gemini AI Solver</li>
+              <li class="feat-dim"><span class="feat-x">✕</span>Unlimited Sessions</li>
+            </ul>
+            <button class="price-cta-btn price-cta-outline">Start Free — No Card Needed</button>
+          </div>
+        </div>
+
+        <!-- ASPIRANT — Monthly (Featured) -->
+        <div class="price-card price-card-featured">
+          <div class="price-card-featured-glow"></div>
+          <div class="price-card-inner">
+            <div class="price-card-head">
+              <div class="price-featured-badge">⭐ Most Popular</div>
+              <div class="price-tier-name" style="color:#f0ece4;">Aspirant</div>
+              <div class="price-tier-tagline" style="color: rgba(200,160,80,0.7);">Monthly · Best for monthly planners</div>
+            </div>
+
+            <div class="price-amount-block">
+              <div class="price-was-row">
+                <span class="price-was-text">Was</span>
+                <span class="price-was-amount">₹299</span>
+                <span class="price-launch-tag">Launch Price</span>
+              </div>
+              <div class="price-main price-main-featured">₹200</div>
+              <div class="price-period">/&nbsp;month</div>
+            </div>
+
+            <ul class="price-features">
+              <li><span class="feat-check">✦</span>Everything in Explorer</li>
+              <li><span class="feat-check">✦</span>Live Gemini AI Doubt Solver</li>
+              <li><span class="feat-check">✦</span>Unlimited Study Sessions</li>
+              <li><span class="feat-check">✦</span>Full JEE Notes Library</li>
+              <li><span class="feat-check">✦</span>Advanced Analytics Dashboard</li>
+              <li><span class="feat-check">✦</span>Priority Support</li>
+            </ul>
+
+            <button class="price-cta-btn price-cta-solid">
+              Start 7-Day Free Trial
+            </button>
+            <div class="price-trial-note">No payment needed during trial · Cancel anytime</div>
+          </div>
+        </div>
+
+        <!-- TITAN — Annual -->
+        <div class="price-card price-card-titan">
+          <div class="price-card-inner">
+            <div class="price-card-head">
+              <div class="price-founding-badge">🔒 Founding Member</div>
+              <div class="price-tier-name">Titan</div>
+              <div class="price-tier-tagline">Annual · Best value for serious rankers</div>
+            </div>
+
+            <div class="price-amount-block">
+              <div class="price-was-row">
+                <span class="price-saving-callout">₹125/mo · Save 37%</span>
+              </div>
+              <div class="price-main">₹1,500</div>
+              <div class="price-period">/&nbsp;year</div>
+              <div class="price-per-month-note">vs ₹799/mo billed monthly</div>
+            </div>
+
+            <ul class="price-features">
+              <li><span class="feat-check">✦</span>Everything in Aspirant</li>
+              <li><span class="feat-check feat-gold">✦</span>Price locked for life</li>
+              <li><span class="feat-check feat-gold">✦</span>Full Mock Test Series</li>
+              <li><span class="feat-check feat-gold">✦</span>Personalized Study Plan</li>
+              <li><span class="feat-check feat-gold">✦</span>Rank Predictor Tool</li>
+              <li><span class="feat-check feat-gold">✦</span>Early Access — New Features</li>
+            </ul>
+
+            <button class="price-cta-btn price-cta-outline price-cta-titan">
+              Get Titan Annual — Best Deal
+            </button>
+            <div class="price-founding-note">🔒 Price locked as Founding Member — no free trial</div>
+          </div>
+        </div>
+
+      </div><!-- end .pricing-cards-row -->
+
+      <p class="pricing-page-footer">✦ Secure payment &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; IIT JEE focused &nbsp;·&nbsp; Made in India 🇮🇳</p>
+    </div>
+  </section>
+
+  <!-- Background Ambient Nebula Glows -->
+  <div class="ambient-glow glow-space-1"></div>
+  <div class="ambient-glow glow-space-2"></div>
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- SECTION 3: STUDY DASHBOARD                         -->
+  <!-- ═══════════════════════════════════════════════════ -->
+  <div class="app-viewport" id="dashboard-section">
+    
+    <!-- TOP-BAR TELEMETRY HEADER -->
+    <header class="app-header glassmorphic">
+      <div class="header-branding" id="branding-logo-trigger">
+        <span class="logo-orb">⚛</span>
+        <h1 class="logo-title">Study<span>Dashboard</span></h1>
+      </div>
+      
+      <div class="header-hud">
+        <div class="hud-item tooltip-trigger" title="Maintain your daily study streak!">
+          <span class="hud-icon">🔥</span>
+          <span class="hud-label">Streak:</span>
+          <span id="streak-counter" class="hud-val">5 Days</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-icon">⏱</span>
+          <span class="hud-label">Study Time:</span>
+          <span id="total-study-time" class="hud-val">4.5 Hrs</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-icon">🏆</span>
+          <span class="hud-label">Tasks Done:</span>
+          <span id="completed-badge" class="hud-val">3/5</span>
+        </div>
+        <div class="hud-item" id="btn-settings-hud" style="cursor: pointer;" title="Configure timers and AI keys">
+          <span class="hud-icon">⚙</span>
+          <span class="hud-label">Settings</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN STUDY PORTAL CONTAINER -->
+    <main class="study-portal-grid">
+      
+      <!-- LEFT SECTION: POMODORO & HABITS PLANNER -->
+      <section class="portal-column left-column">
+        
+        <!-- A. POMODORO TIMER CARD -->
+        <div class="portal-card glassmorphic timer-card">
+          <div class="card-tag">Pomodoro Station</div>
+          
+          <div class="timer-display-container">
+            <!-- SVG Circular Progress Indicator -->
+            <svg class="timer-progress-svg" viewBox="0 0 200 200">
+              <circle class="bg-ring" cx="100" cy="100" r="88" />
+              <circle id="progress-ring" class="active-ring" cx="100" cy="100" r="88" />
+            </svg>
+            
+            <!-- Timer Clock Text Overlay -->
+            <div class="timer-clock-text">
+              <span id="timer-clock" class="clock-digits">25:00</span>
+              <span id="timer-status" class="session-label">Focus Session</span>
+            </div>
+          </div>
+
+          <!-- Timer Presets Switcher -->
+          <div class="timer-modes">
+            <button id="btn-mode-focus" class="mode-btn active" data-minutes="25">Focus</button>
+            <button id="btn-mode-short" class="mode-btn" data-minutes="5">Short Break</button>
+            <button id="btn-mode-long" class="mode-btn" data-minutes="15">Long Break</button>
+          </div>
+
+          <!-- Timer Buttons Panel -->
+          <div class="timer-controls">
+            <button id="btn-timer-toggle" class="control-btn play-btn">Start Session</button>
+            <button id="btn-timer-reset" class="control-btn">Reset</button>
+          </div>
+        </div>
+
+        <!-- B. JEE HABITS & TASKS CHECKLIST -->
+        <div class="portal-card glassmorphic checklist-card">
+          <div class="card-header-row">
+            <h3 class="card-title">Daily Habits Planner</h3>
+            <span id="checklist-ratio" class="ratio-badge">60%</span>
+          </div>
+          
+          <!-- Checklist dynamic progress bar -->
+          <div class="progress-bar-track">
+            <div id="checklist-progress-bar" class="progress-bar-fill" style="width: 60%;"></div>
+          </div>
+
+          <!-- Dynamic habits list -->
+          <ul class="habits-list" id="habits-container">
+            <!-- Populated via Javascript -->
+          </ul>
+
+          <!-- Add custom task form -->
+          <form id="add-task-form" class="add-task-row">
+            <input type="text" id="input-new-task" class="task-input glassmorphic" placeholder="Add custom study target..." required maxlength="60">
+            <button type="submit" class="task-submit-btn">+</button>
+          </form>
+        </div>
+
+      </section>
+
+      <!-- RIGHT SECTION: ANALYTICS & AI DOUBTS -->
+      <section class="portal-column right-column">
+        
+        <!-- C. STUDY LOGS & ANALYTICS CHART -->
+        <div class="portal-card glassmorphic analytics-card">
+          <h3 class="card-title">Study Log Analytics</h3>
+          <p class="card-subtitle">Log minutes spent studying to visualize your preparation chart.</p>
+          
+          <!-- Subject Time Loggers -->
+          <div class="subject-log-panel">
+            <div class="subject-log-item phy">
+              <span class="subject-dot"></span>
+              <span class="subject-name">Physics</span>
+              <div class="subject-log-controls">
+                <button class="log-adjust-btn" data-subject="physics" data-amount="-15">-15m</button>
+                <span id="log-time-physics" class="logged-minutes">90m</span>
+                <button class="log-adjust-btn" data-subject="physics" data-amount="15">+15m</button>
+              </div>
+            </div>
+
+            <div class="subject-log-item chem">
+              <span class="subject-dot"></span>
+              <span class="subject-name">Chemistry</span>
+              <div class="subject-log-controls">
+                <button class="log-adjust-btn" data-subject="chemistry" data-amount="-15">-15m</button>
+                <span id="log-time-chemistry" class="logged-minutes">120m</span>
+                <button class="log-adjust-btn" data-subject="chemistry" data-amount="15">+15m</button>
+              </div>
+            </div>
+
+            <div class="subject-log-item maths">
+              <span class="subject-dot"></span>
+              <span class="subject-name">Maths</span>
+              <div class="subject-log-controls">
+                <button class="log-adjust-btn" data-subject="maths" data-amount="-15">-15m</button>
+                <span id="log-time-maths" class="logged-minutes">60m</span>
+                <button class="log-adjust-btn" data-subject="maths" data-amount="15">+15m</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dynamic SVG Chart Canvas -->
+          <div class="chart-canvas-container">
+            <canvas id="analytics-chart-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- D. AI DOUBT SOLVER CHAT DRAWER -->
+        <div class="portal-card glassmorphic doubts-card">
+          <div class="doubts-header">
+            <div>
+              <h3 class="card-title">AI Doubt Solver</h3>
+              <p class="card-subtitle">Ask questions in Physics, Chemistry, or Maths for instant answers.</p>
+            </div>
+            <span class="ai-status">Tutor: Online</span>
+          </div>
+
+          <!-- Chat messages timeline container -->
+          <div class="chat-timeline" id="chat-messages-container">
+            <!-- Simulated Welcome -->
+            <div class="chat-bubble ai-bubble">
+              <div class="bubble-sender">⚛ PhysicsVault Bot</div>
+              <div class="bubble-content">
+                Hello! I am your personal IIT JEE Doubts solver. Type any equation or theoretical doubt from Physics, Chemistry, or Mathematics below, and I will resolve it step-by-step!
+              </div>
+            </div>
+          </div>
+
+          <!-- Question submission row -->
+          <div class="chat-submit-row">
+            <input type="text" id="input-doubt-field" class="chat-input glassmorphic" placeholder="Type your IIT JEE doubt here... (e.g., Coulomb's law derivation)">
+            <button id="btn-submit-doubt" class="chat-send-btn">Solve</button>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Settings configurations modal -->
+  <dialog id="modal-settings" class="glassmorphic-modal">
+    <div class="modal-header">
+      <h3>⚙ Configurations & Gemini AI Key</h3>
+      <button class="modal-close-btn" data-close="modal-settings">&times;</button>
+    </div>
+    <div class="modal-body scrollable">
+      <h4>1. Custom Pomodoro Timer Durations</h4>
+      <div class="control-group">
+        <label for="settings-focus">Focus Duration: <span id="lbl-settings-focus" class="monotext">25</span> min</label>
+        <input type="range" id="settings-focus" min="5" max="60" step="1" value="25">
+      </div>
+      <div class="control-group mt-2">
+        <label for="settings-short">Short Break: <span id="lbl-settings-short" class="monotext">5</span> min</label>
+        <input type="range" id="settings-short" min="1" max="20" step="1" value="5">
+      </div>
+      <div class="control-group mt-2">
+        <label for="settings-long">Long Break: <span id="lbl-settings-long" class="monotext">15</span> min</label>
+        <input type="range" id="settings-long" min="5" max="45" step="1" value="15">
+      </div>
+
+      <h4 class="mt-2">2. Google Gemini API Integration</h4>
+      <p class="card-subtitle" style="margin-bottom: 8px;">
+        Leave blank to run in simulated mode, or enter your Gemini API Key to enable live, real-time AI doubt solving! Get a free key from <a href="https://aistudio.google.com/" target="_blank" style="color: var(--color-phy); text-decoration: underline;">Google AI Studio</a>.
+      </p>
+      <div class="control-group">
+        <input type="password" id="settings-api-key" class="chat-input glassmorphic" style="width: 100%;" placeholder="Enter Google Gemini API Key...">
+      </div>
+      
+      <button id="btn-save-settings" class="control-btn play-btn mt-2" style="width: 100%;">Save Configurations</button>
+    </div>
+  </dialog>
+
+</body>
+</html>
