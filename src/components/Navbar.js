@@ -68,6 +68,15 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
               <span className="text-xs text-zinc-400 flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
                 <Shield className="w-3.5 h-3.5 text-sky-400" />
                 {user.email}
+                <span className={`ml-2 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                  user.tier === "titan" 
+                    ? "bg-violet-500/20 text-violet-400 border border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.15)]" 
+                    : user.tier === "aspirant"
+                    ? "bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.15)]"
+                    : "bg-zinc-500/20 text-zinc-500 border border-zinc-500/30"
+                }`}>
+                  {user.tier || "free"}
+                </span>
               </span>
               <button
                 onClick={onLogout}

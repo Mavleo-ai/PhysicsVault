@@ -1,25 +1,23 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { 
   Atom, 
-  BookOpen,
   Sparkles, 
   ChevronRight, 
   Check, 
-  Search,
-  MessageSquare,
   Send,
-  HelpCircle, 
-  Zap, 
-  ShieldAlert,
-  ArrowRight,
-  TrendingUp,
   Star,
   GraduationCap,
-  Award
+  Award,
+  ArrowRight,
+  ShieldCheck,
+  CreditCard,
+  AlertTriangle,
+  RefreshCw,
+  X
 } from "lucide-react";
 
 // Components
@@ -41,12 +39,17 @@ export default function Home() {
   // Mouse coordinates state for glow
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Interactive AI Doubt Solver Simulator state
+  // Interactive AI Doubt Solver state
   const [doubtQuery, setDoubtQuery] = useState("");
   const [chatMessages, setChatMessages] = useState([
-    { role: "assistant", text: "Hello! I am your PhysicsVault AI Study Orb. Ask me any question or paste a formula from Physics, Chemistry, or Maths!" }
+    { role: "assistant", text: "Hello! I am your PhysicsVault AI Study Orb. Ask me any conceptual question or paste a formula from Physics, Chemistry, or Maths!" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+
+  // Payments and Receipt details states
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'failure' | null
+  const [receiptDetails, setReceiptDetails] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   // Initializing preloader count-up
   useEffect(() => {
@@ -66,13 +69,14 @@ export default function Home() {
   }, []);
 
   // Fetch persistent user session on load
+  const fetchSession = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      setUser(data.user);
+    }
+  };
+
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
-      }
-    };
     fetchSession();
   }, []);
 
@@ -95,7 +99,7 @@ export default function Home() {
     setAuthOpen(true);
   };
 
-  // Mock AI Doubt solving database answers
+  // Mock AI doubt solver logic
   const handleSolveDoubt = async (e) => {
     e.preventDefault();
     if (!doubtQuery.trim()) return;
@@ -105,15 +109,14 @@ export default function Home() {
     setDoubtQuery("");
     setIsTyping(true);
 
-    // Simulate AI computing latency
     await new Promise(resolve => setTimeout(resolve, 1400));
 
-    let reply = "I've analyzed your telemetry query. Here is the step-by-step mathematical deduction:\n\nUsing the Schrödinger equation:\n\n$$-\\frac{\\hbar^2}{2m} \\nabla^2 \\Psi + V\\Psi = E\\Psi$$\n\nIntegrating over bounded energy levels confirms orbital stability.";
+    let reply = "Here is the step-by-step mathematical deduction:\n\nUsing the Schrödinger equation:\n\n$$-\\frac{\\hbar^2}{2m} \\nabla^2 \\Psi + V\\Psi = E\\Psi$$\n\nIntegrating over bounded energy levels confirms orbital stability.";
     
     const queryLower = userQ.toLowerCase();
-    if (queryLower.includes("gravity") || queryLower.includes("kepler")) {
+    if (queryLower.includes("gravity") || queryLower.includes("kepler") || queryLower.includes("orbit")) {
       reply = "Kepler's Third Law states that the square of the orbital period $T^2$ is proportional to the cube of the semi-major axis $a^3$:\n\n$$T^2 = \\left( \\frac{4\\pi^2}{G(M + m)} \\right) a^3$$\n\nFor satellites orbiting massive centers, we approximate gravity balances as:\n\n$$\\frac{v^2}{r} = \\frac{GM}{r^2} \\implies v = \\sqrt{\\frac{GM}{r}}$$";
-    } else if (queryLower.includes("benzene") || queryLower.includes("chemistry")) {
+    } else if (queryLower.includes("benzene") || queryLower.includes("chemistry") || queryLower.includes("bond")) {
       reply = "For organic resonance compounds, molecular orbitals form delocalized $\\pi$-electron rings. Let's calculate the resonance energy bounds:\n\n$$\\text{Resonance Energy} = E_{\\text{localized}} - E_{\\text{delocalized}} \\approx 152\\text{ kJ/mol}$$";
     } else if (queryLower.includes("limit") || queryLower.includes("calculus") || queryLower.includes("math")) {
       reply = "Using L'Hôpital's Rule for indeterminate forms $0/0$:\n\n$$\\lim_{x \\to c} \\frac{f(x)}{g(x)} = \\lim_{x \\to c} \\frac{f'(x)}{g'(x)}$$\n\nDifferentiating the numerators and denominators allows direct evaluation.";
@@ -123,7 +126,109 @@ export default function Home() {
     setIsTyping(false);
   };
 
-  // Floating physics & mathematics equations positions
+  // Dynamically load Razorpay's checkout script
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  // Launch Razorpay Checkout Portal
+  const handlePayment = async (planName, priceINR) => {
+    setErrorStatus(null);
+    setPaymentStatus(null);
+
+    // 1. Check if user is logged in
+    if (!user) {
+      triggerAuth("signup");
+      return;
+    }
+
+    setCheckoutLoading(true);
+
+    const scriptLoaded = await loadRazorpayScript();
+    if (!scriptLoaded) {
+      alert("Failed to load Razorpay payment client. Check network connection.");
+      setCheckoutLoading(false);
+      return;
+    }
+
+    // Convert price to paise (e.g. ₹200 -> 20000 paise)
+    const amountPaise = priceINR * 100;
+    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_StbrZnQ0xnLGXw";
+
+    const options = {
+      key: razorpayKey,
+      amount: amountPaise,
+      currency: "INR",
+      name: "PhysicsVault Studio",
+      description: `${planName} Subscription Upgrade`,
+      image: "/next.svg", // Sleek black logo
+      handler: async function (response) {
+        // Upgrade mock user session tier in database
+        try {
+          const { data, error } = await supabase.auth.upgradeUserTier(planName.toLowerCase());
+          if (error) throw new Error(error);
+
+          // Refresh user session state
+          await fetchSession();
+
+          // Render receipts success popup overlay
+          setReceiptDetails({
+            paymentId: response.razorpay_payment_id,
+            plan: planName,
+            amount: priceINR,
+            orderId: `ord_${Math.random().toString(36).substr(2, 9)}`,
+            date: new Date().toLocaleDateString(),
+          });
+          setPaymentStatus("success");
+        } catch (err) {
+          console.error("Failed to upgrade student clearance tier:", err);
+          setPaymentStatus("failure");
+        } finally {
+          setCheckoutLoading(false);
+        }
+      },
+      prefill: {
+        email: user.email,
+        contact: "9999999999",
+      },
+      theme: {
+        color: "#8b5cf6", // Violet glow accent
+      },
+      modal: {
+        ondismiss: function () {
+          setCheckoutLoading(false);
+        }
+      }
+    };
+
+    try {
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", function (response) {
+        setPaymentStatus("failure");
+        setCheckoutLoading(false);
+      });
+      rzp.open();
+    } catch (e) {
+      console.error("Razorpay initiation error:", e);
+      setPaymentStatus("failure");
+      setCheckoutLoading(false);
+    }
+  };
+
+  const [errorStatus, setErrorStatus] = useState(null);
+
+  // Floating physics formulas positions
   const formulas = [
     { text: "E = mc²", top: "15%", left: "8%", delay: 0 },
     { text: "F = G(m₁m₂)/r²", top: "42%", left: "5%", delay: 3 },
@@ -142,7 +247,7 @@ export default function Home() {
         style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px` }}
       />
 
-      {/* Cinematic Academic Preloader */}
+      {/* Cinematic Preloader */}
       <AnimatePresence>
         {loading && (
           <motion.div 
@@ -164,7 +269,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
             >
               <h2 className="font-display font-extrabold text-xs tracking-[0.25em] uppercase bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-violet-400">
-                INITIALIZING PHYSICSVAULT COCKPIT
+                INITIALIZING STUDY HUB
               </h2>
               <div className="w-48 h-[2px] bg-zinc-800 rounded-full mt-3 overflow-hidden mx-auto">
                 <div 
@@ -173,14 +278,14 @@ export default function Home() {
                 />
               </div>
               <span className="block text-[10px] font-mono text-zinc-500 mt-2 tracking-widest">
-                {loadingPercent}% LOADED
+                {loadingPercent}% STABILIZED
               </span>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Background Starfield and Accretion Disk Black Hole */}
+      {/* Background Starfield and Black Hole */}
       {!loading && (
         <>
           <SpaceBackground />
@@ -212,7 +317,7 @@ export default function Home() {
 
           <main className="relative z-10">
             
-            {/* 1. ACADEMIC HERO SECTION */}
+            {/* 1. CINEMATIC ACADEMIC HERO SECTION */}
             <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-12 pt-28 pb-16 max-w-7xl mx-auto overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
@@ -227,7 +332,7 @@ export default function Home() {
                   >
                     <GraduationCap className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
                     <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-violet-400">
-                      PREMIUM JEE & NEET PREPARATION cockpit
+                      PREMIUM JEE & NEET STUDY PORTAL
                     </span>
                   </motion.div>
 
@@ -249,7 +354,7 @@ export default function Home() {
                     transition={{ duration: 0.8, delay: 0.2 }}
                     className="max-w-xl text-sm md:text-base text-zinc-400 font-medium leading-relaxed"
                   >
-                    Access elite study notes, interactive textbooks, and instant 24/7 AI-powered doubt solving tailored for advanced science learners and exam candidates.
+                    Access elite study notes, premium textbooks, and instant AI-powered doubt solving designed for serious science students.
                   </motion.p>
 
                   <motion.div 
@@ -326,24 +431,22 @@ export default function Home() {
                   >
                     <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/5 rounded-full blur-2xl pointer-events-none" />
                     
-                    {/* Header line */}
                     <div className="flex justify-between items-center mb-4 pb-3 border-b border-white/5">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                         <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-                          STUDENT STUDY COCKPIT
+                          STUDY STATUS
                         </span>
                       </div>
                       <span className="text-[10px] font-mono text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full">
-                        ACTIVE SESSION
+                        ACTIVE LOCK
                       </span>
                     </div>
 
-                    {/* Stats details */}
                     <div className="space-y-3.5 text-xs">
                       <div>
                         <div className="flex justify-between text-zinc-400 mb-1.5 font-medium">
-                          <span>JEE General Syllabus Tracker</span>
+                          <span>Syllabus Tracker</span>
                           <span className="text-white font-bold">82%</span>
                         </div>
                         <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden">
@@ -367,7 +470,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Sub-hero Fade */}
               <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#030303] to-transparent pointer-events-none" />
             </section>
 
@@ -395,43 +497,123 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. NOTES & TEXTBOOKS GRID SECTION */}
+            {/* 3. EVERYTHING YOU NEED TO SCORE HIGHER - FEATURES SECTION */}
+            <section id="features" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
+              <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+                <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
+                  STUDY FEATURES
+                </span>
+                <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
+                  Everything You Need To Score Higher
+                </h2>
+                <p className="text-sm text-zinc-500 font-medium">
+                  We engineered our learning suite from the ground up to render massive cosmological behaviors with high frame stability.
+                </p>
+              </div>
+
+              {/* Bento Grid Features Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* Bento Card 1: Elite Physics Notes */}
+                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-violet-600/10 rounded-full blur-2xl group-hover:bg-violet-600/20 transition-colors" />
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                    <GraduationCap className="w-5 h-5 text-violet-400" />
+                  </div>
+                  <div className="space-y-2 mt-8">
+                    <h4 className="font-display font-bold text-lg text-white">
+                      Elite Physics Notes
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                      Chapter-wise study notes, precise formula sheets, and core exam-focused derivations tailored for top scores.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-violet-400 font-semibold group-hover:text-white transition-colors">
+                    <span>Access Notes</span>
+                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Bento Card 2: Interactive Textbooks */}
+                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-colors" />
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                    <Atom className="w-5 h-5 text-sky-400" />
+                  </div>
+                  <div className="space-y-2 mt-8">
+                    <h4 className="font-display font-bold text-lg text-white">
+                      Interactive Textbooks
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                      Digital interactive access to full Physics, Chemistry, and Maths curricula loaded with 3D model illustrations.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-sky-400 font-semibold group-hover:text-white transition-colors">
+                    <span>Open Textbooks</span>
+                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                  </div>
+                </div>
+
+                {/* Bento Card 3: 24/7 AI Support */}
+                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-emerald-400 animate-pulse" />
+                  </div>
+                  <div className="space-y-2 mt-8">
+                    <h4 className="font-display font-bold text-lg text-white">
+                      24/7 AI Support
+                    </h4>
+                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                      Solve any sub-topic doubt, get instant step-by-step formula explanations and structural conceptual breakdowns.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-emerald-400 font-semibold group-hover:text-white transition-colors">
+                    <span>Solve Doubts</span>
+                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                  </div>
+                </div>
+
+              </div>
+
+            </section>
+
+            {/* 4. SYLLABUS & TEXTBOOKS INTERACTIVE GRAPHICS */}
             <section id="notes" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Visual Science Textbooks Display */}
+                {/* Science Textbooks Display */}
                 <div className="lg:col-span-5 flex items-center justify-center relative z-20">
                   <motion.div
                     animate={{ y: [0, -8, 0] }}
                     transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative w-80 h-80 md:w-96 md:h-96 filter drop-shadow-[0_0_40px_rgba(139,92,246,0.25)] pointer-events-auto"
+                    className="relative w-80 h-80 md:w-96 md:h-96 filter drop-shadow-[0_0_40px_rgba(139,92,246,0.25)]"
                   >
                     <Image
                       src="/textbooks.png"
                       alt="Physics Vault Textbooks"
                       width={380}
                       height={380}
-                      className="object-contain"
+                      className="object-contain animate-[pulse_5s_ease-in-out_infinite]"
                       priority
                     />
                   </motion.div>
                 </div>
 
-                {/* Animated Textbook Cards */}
+                {/* Subject chapters list */}
                 <div className="lg:col-span-7 space-y-8 relative z-20">
                   <div className="space-y-3">
                     <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
                       ELITE SUBJECT MODULES
                     </span>
                     <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-                      Futuristic Interactive Syllabus
+                      Curated Digital Textbooks
                     </h2>
                     <p className="text-sm text-zinc-400 leading-relaxed max-w-lg font-medium">
                       Study our hand-crafted, high-yield digital notes. Each curriculum textbook includes floating formula visualizations and instant doubt solving portals.
                     </p>
                   </div>
 
-                  {/* Textbook cards details */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {[
                       {
@@ -487,13 +669,12 @@ export default function Home() {
               </div>
             </section>
 
-            {/* 4. LIVE AI DOUBT SOLVING SECTION */}
+            {/* 5. LIVE AI DOUBT SOLVING CONSOLE */}
             <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none" />
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                {/* AI Text explanation */}
                 <div className="lg:col-span-6 space-y-6 text-left relative z-20">
                   <span className="text-[10px] font-mono tracking-[0.25em] text-violet-400 uppercase font-bold">
                     LIVE AI SUPPORT
@@ -505,13 +686,13 @@ export default function Home() {
                     </span>
                   </h2>
                   <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                    Stuck on a tricky JEE Advanced problem? Type the formula or upload your telemetry equation. Our AI tutor analyzes steps instantaneously, returning crystal-clear LaTeX derivations.
+                    Stuck on a tricky JEE Advanced problem? Type the formula or ask a general query. Our AI tutor analyzes steps instantaneously, returning crystal-clear LaTeX derivations.
                   </p>
                   
                   <div className="space-y-3.5 pt-4">
                     {[
                       "Fully supports Physics, Chemistry, and Maths equations.",
-                      "Translates atomic bonds, mechanics, and vector lattices.",
+                      "Translates chemical bonds, mechanics, and vector lattices.",
                       "LaTeX formatted mathematical notation rendering.",
                     ].map((point, index) => (
                       <div key={index} className="flex items-center gap-3">
@@ -524,11 +705,9 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* AI Interactive Chat Simulator Console */}
                 <div className="lg:col-span-6 relative z-20">
                   <div className="glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col h-[380px]">
                     
-                    {/* Chat console header */}
                     <div className="bg-white/3 border-b border-white/5 px-5 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-pulse" />
@@ -537,11 +716,10 @@ export default function Home() {
                         </span>
                       </div>
                       <span className="text-[9px] font-mono text-zinc-500 uppercase">
-                        AI COCKPIT STABLE
+                        AI CONSOLE STABLE
                       </span>
                     </div>
 
-                    {/* Messages Body */}
                     <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left">
                       {chatMessages.map((msg, i) => (
                         <div 
@@ -578,7 +756,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Chat input submit */}
                     <form onSubmit={handleSolveDoubt} className="border-t border-white/5 bg-black/40 p-3 flex gap-2">
                       <input
                         type="text"
@@ -601,48 +778,47 @@ export default function Home() {
               </div>
             </section>
 
-            {/* 5. STUDENT SUCCESS REVIEWS SECTION */}
+            {/* 6. TRUSTED BY STUDENTS NATIONWIDE - REVIEWS SECTION */}
             <section id="reviews" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
                 <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
                   STUDENT TESTIMONIALS
                 </span>
                 <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-                  Fleet Ranks & Success Stories
+                  Trusted By Students Nationwide
                 </h2>
                 <p className="text-sm text-zinc-500 font-medium">
-                  Thousands of navigators master complex competitive examinations using PhysicsVault textbooks.
+                  Thousands of students master complex JEE / NEET problems using PhysicsVault daily.
                 </p>
               </div>
 
-              {/* Review Cards Grid */}
+              {/* Success Stories Grids */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                   {
                     name: "Rahul Verma",
                     rank: "AIR 14 · JEE Advanced 2025",
                     image: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80",
-                    comment: "The relativistic simulation fields saved me weeks of dry textbook reading. The LaTeX AI doubt solver responded in seconds whenever I got stuck.",
+                    comment: "Improved my Physics problem solving massively. The LaTeX AI doubt solver responded in seconds whenever I got stuck.",
                     rating: 5
                   },
                   {
                     name: "Ananya Iyer",
                     rank: "99.98% Percentile · JEE Mains",
                     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-                    comment: "Chemistry and Maths textbooks are filled with floating formulas that make spatial visualization effortless. Absolute startup gold standard.",
+                    comment: "AI explanations are extremely useful. Textbooks are filled with floating formulas that make spatial visualization effortless.",
                     rating: 5
                   },
                   {
                     name: "Vikram Malhotra",
                     rank: "AIR 42 · NEET Biology",
                     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-                    comment: "PhysicsVault study notes are compiled with high-precision matrices. The persistent dashboard allowed me to continue studying on my tablet flawlessly.",
+                    comment: "Best JEE notes platform I've used. High-precision vectors and step-by-step limits calculus modules.",
                     rating: 5
                   }
                 ].map((rev, i) => (
                   <div key={i} className="glass-panel glass-panel-hover rounded-2xl p-6 border border-white/5 flex flex-col justify-between text-left h-76 relative group overflow-hidden">
                     <div className="space-y-4">
-                      {/* Rating stars */}
                       <div className="flex gap-1">
                         {[...Array(rev.rating)].map((_, sIdx) => (
                           <Star key={sIdx} className="w-3.5 h-3.5 text-sky-400 fill-sky-400" />
@@ -654,7 +830,6 @@ export default function Home() {
                       </p>
                     </div>
 
-                    {/* Author block */}
                     <div className="flex items-center gap-3 pt-4 border-t border-white/5 mt-4">
                       <div className="relative w-9 h-9 rounded-full overflow-hidden border border-sky-400/20 shrink-0">
                         <img 
@@ -676,22 +851,30 @@ export default function Home() {
 
             </section>
 
-            {/* 6. EDUCATIONAL PRICING SECTION */}
+            {/* 7. RAZORPAY SUBSCRIPTIONS - PRICING SECTION */}
             <section id="pricing" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl pointer-events-none" />
 
               <div className="text-center max-w-2xl mx-auto mb-20 space-y-3 relative z-10">
                 <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
-                  PORTAL BOARDING CLEARANCE
+                  SECURE SUBSCRIPTION PAYMENT
                 </span>
                 <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
                   Join the PhysicsVault Fleet
                 </h2>
                 <p className="text-sm text-zinc-500 font-medium">
-                  Unlock access to unlimited study notes, animated textbooks, and AI doubt solvers.
+                  Unlock access to unlimited study notes, animated textbooks, and AI doubt solvers via Razorpay.
                 </p>
               </div>
+
+              {/* Checkout Progress Indicator */}
+              {checkoutLoading && (
+                <div className="flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-2xl max-w-sm mx-auto mb-8 animate-pulse text-xs text-sky-400 gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Initiating secure Razorpay checkout...
+                </div>
+              )}
 
               {/* Pricing Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto relative z-20">
@@ -699,7 +882,7 @@ export default function Home() {
                 {/* CARD 1: ASPIRANT */}
                 <div 
                   className="animated-border rounded-2xl p-8 flex flex-col justify-between min-h-[460px] cursor-pointer"
-                  onClick={() => triggerAuth("signup")}
+                  onClick={() => handlePayment("Aspirant", 200)}
                 >
                   <div className="space-y-6">
                     <div className="flex justify-between items-start">
@@ -746,7 +929,7 @@ export default function Home() {
 
                   <div className="mt-8 pt-6 border-t border-white/5">
                     <button className="w-full py-3.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-sky-500/10">
-                      Start 7-Day Free Trial
+                      Start Now
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -755,7 +938,7 @@ export default function Home() {
                 {/* CARD 2: TITAN */}
                 <div 
                   className="animated-border rounded-2xl p-8 flex flex-col justify-between min-h-[460px] relative overflow-hidden cursor-pointer"
-                  onClick={() => triggerAuth("signup")}
+                  onClick={() => handlePayment("Titan", 1500)}
                 >
                   <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
                   <div className="absolute -right-16 -top-16 w-36 h-36 bg-violet-600/10 rounded-full blur-2xl pointer-events-none" />
@@ -806,7 +989,7 @@ export default function Home() {
 
                   <div className="mt-8 pt-6 border-t border-white/5">
                     <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-violet-500/25">
-                      Secure Study Access
+                      Go Titan
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -815,11 +998,11 @@ export default function Home() {
               </div>
 
               <div className="text-center mt-12 text-[10px] text-zinc-500 tracking-wider font-mono">
-                * Prices locked forever for founding students. Standard secure academic encryption active.
+                * Prices locked forever for founding students. Standard secure Razorpay encryption active.
               </div>
             </section>
 
-            {/* 7. FOOTER */}
+            {/* 8. FOOTER */}
             <footer id="contact" className="pt-24 pb-12 px-6 md:px-12 max-w-7xl mx-auto border-t border-white/5 relative z-25">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <div className="space-y-4 col-span-1 md:col-span-2">
@@ -843,7 +1026,7 @@ export default function Home() {
                   <ul className="space-y-2 text-xs text-zinc-400">
                     <li><a href="#" className="hover:text-white transition-colors">Study Cockpit</a></li>
                     <li><a href="#notes" className="hover:text-white transition-colors">Interactive Textbooks</a></li>
-                    <li><a href="#pricing" className="hover:text-white transition-colors">Commander Pass pricing</a></li>
+                    <li><a href="#pricing" className="hover:text-white transition-colors">Pricing pass plans</a></li>
                   </ul>
                 </div>
 
@@ -868,6 +1051,89 @@ export default function Home() {
             </footer>
 
           </main>
+
+          {/* Checkout Status Overlay Modal */}
+          <AnimatePresence>
+            {paymentStatus && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              >
+                <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setPaymentStatus(null)} />
+                
+                <motion.div 
+                  initial={{ scale: 0.9, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.9, y: 20 }}
+                  className="relative w-full max-w-md bg-[#090915]/95 border border-white/10 rounded-2xl p-8 text-center shadow-2xl z-10"
+                >
+                  <button 
+                    onClick={() => setPaymentStatus(null)}
+                    className="absolute top-5 right-5 text-zinc-400 hover:text-white"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+
+                  {paymentStatus === "success" ? (
+                    <div className="space-y-6 pt-4">
+                      <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+                        <ShieldCheck className="w-8 h-8 text-emerald-400" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="font-display font-extrabold text-2xl text-white">UPGRADE SUCCESSFUL</h3>
+                        <p className="text-xs text-zinc-400">Your student study cockpit has been elevated to the {receiptDetails?.plan} Plan clearance.</p>
+                      </div>
+
+                      {/* Visual Receipt */}
+                      <div className="bg-white/3 border border-white/5 rounded-xl p-4 text-left font-mono text-[10px] text-zinc-400 space-y-2.5">
+                        <div className="flex justify-between">
+                          <span>RECEIPT PLAN:</span>
+                          <span className="text-white font-bold">{receiptDetails?.plan?.toUpperCase()}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>TRANSACTION ID:</span>
+                          <span className="text-sky-400">{receiptDetails?.paymentId}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>ORDER ID:</span>
+                          <span className="text-zinc-500">{receiptDetails?.orderId}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-white/5 pt-2 text-xs">
+                          <span>AMOUNT PAID:</span>
+                          <span className="text-white font-bold">₹{receiptDetails?.amount} INR</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setPaymentStatus(null)}
+                        className="w-full bg-gradient-to-r from-sky-400 to-violet-500 text-white font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer hover:shadow-sky-500/20"
+                      >
+                        Enter Upgraded Portal
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 pt-4">
+                      <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto shadow-lg shadow-red-500/10">
+                        <AlertTriangle className="w-8 h-8 text-red-400 animate-bounce" />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="font-display font-extrabold text-2xl text-white">TRANSACTION TIMEOUT</h3>
+                        <p className="text-xs text-zinc-400">The billing cockpit encountered an external payment error. No amount has been debited.</p>
+                      </div>
+                      <button
+                        onClick={() => setPaymentStatus(null)}
+                        className="w-full bg-white/5 border border-white/10 text-white font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer hover:bg-white/10"
+                      >
+                        Dismiss Console
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <AuthModal
             isOpen={authOpen}

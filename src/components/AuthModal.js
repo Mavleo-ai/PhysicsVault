@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Mail, Lock, ShieldCheck, Eye, EyeOff, Sparkles } from "lucide-react";
+import { X, Mail, Lock, ShieldCheck, Eye, EyeOff, Sparkles, User } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthModal({ isOpen, onClose, view = "login", onAuthSuccess }) {
   const [currentView, setCurrentView] = useState(view);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [agreeTerms, setAgreeTerms] = useState(false);
@@ -24,7 +24,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
     setSuccessMsg("");
     setEmail("");
     setPassword("");
-    setUsername("");
+    setConfirmPassword("");
   }, [view, isOpen]);
 
   // Dynamically calculate password strength
@@ -49,10 +49,17 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
     setSuccessMsg("");
     setLoading(true);
 
-    if (currentView === "signup" && !agreeTerms) {
-      setErrorMsg("You must agree to the Terms of Service.");
-      setLoading(false);
-      return;
+    if (currentView === "signup") {
+      if (password !== confirmPassword) {
+        setErrorMsg("Access keys do not match. Confirm correct decryption.");
+        setLoading(false);
+        return;
+      }
+      if (!agreeTerms) {
+        setErrorMsg("You must agree to the Terms of Service.");
+        setLoading(false);
+        return;
+      }
     }
 
     try {
@@ -183,6 +190,26 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
               </button>
             </div>
           </div>
+
+          {/* Confirm Password input field for signup */}
+          {currentView === "signup" && (
+            <div className="space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
+              <label className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
+                CONFIRM SECURE PASSWORD
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-10 pr-10 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all font-medium"
+                />
+              </div>
+            </div>
+          )}
 
           {/* Password strength indicator for signup */}
           {currentView === "signup" && (

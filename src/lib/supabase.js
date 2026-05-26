@@ -13,11 +13,10 @@ if (supabaseUrl && supabaseAnonKey) {
   }
 }
 
-// Custom mock Supabase auth for smooth offline/out-of-box user trials and persistent sessions
+// Mock auth with full subscriber tier storage (localStorage persistent)
 const mockAuth = {
   signUp: async ({ email, password }) => {
-    // Artificial latency for premium feel
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 600));
 
     if (!email || !password) {
       return { data: { user: null }, error: { message: "Email and password are required." } };
@@ -28,7 +27,11 @@ const mockAuth = {
       return { data: { user: null }, error: { message: "An account with this email already exists." } };
     }
 
-    const newUser = { id: `usr_${Math.random().toString(36).substr(2, 9)}`, email };
+    const newUser = { 
+      id: `usr_${Math.random().toString(36).substr(2, 9)}`, 
+      email,
+      tier: "free" 
+    };
     users.push({ ...newUser, password });
     localStorage.setItem("pv_mock_users", JSON.stringify(users));
     localStorage.setItem("pv_active_user", JSON.stringify(newUser));
@@ -37,7 +40,7 @@ const mockAuth = {
   },
 
   signInWithPassword: async ({ email, password }) => {
-    await new Promise((r) => setTimeout(r, 800));
+    await new Promise((r) => setTimeout(r, 600));
 
     const users = JSON.parse(localStorage.getItem("pv_mock_users") || "[]");
     const matchedUser = users.find((u) => u.email === email && u.password === password);
@@ -46,7 +49,11 @@ const mockAuth = {
       return { data: { user: null }, error: { message: "Invalid email or password credential." } };
     }
 
-    const userSession = { id: matchedUser.id, email: matchedUser.email };
+    const userSession = { 
+      id: matchedUser.id, 
+      email: matchedUser.email,
+      tier: matchedUser.tier || "free"
+    };
     localStorage.setItem("pv_active_user", JSON.stringify(userSession));
 
     return { data: { user: userSession }, error: null };
@@ -62,6 +69,30 @@ const mockAuth = {
     const userSession = localStorage.getItem("pv_active_user");
     if (!userSession) return { data: { user: null } };
     return { data: { user: JSON.parse(userSession) }, error: null };
+  },
+
+  // Premium database callback to upgrade study clearance level upon Razorpay completion
+  upgradeUserTier: async (tier) => {
+    if (typeof window === "undefined") return { error: "No window context" };
+    
+    const activeUserStr = localStorage.getItem("pv_active_user");
+    if (!activeUserStr) return { error: "User not logged in" };
+    
+    const activeUser = JSON.parse(activeUserStr);
+    activeUser.tier = tier;
+    localStorage.setItem("pv_active_user", JSON.stringify(activeUser));
+
+    // Update in mock database list as well
+    const users = JSON.parse(localStorage.getItem("pv_mock_users") || "[]");
+    const updatedUsers = users.map((u) => {
+      if (u.email === activeUser.email) {
+        return { ...u, tier };
+      }
+      return u;
+    });
+    localStorage.setItem("pv_mock_users", JSON.stringify(updatedUsers));
+
+    return { data: { user: activeUser }, error: null };
   }
 };
 
