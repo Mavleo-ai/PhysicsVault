@@ -31,9 +31,9 @@ export default function SpaceBackground() {
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           size: Math.random() * 1.2 + 0.15,
-          opacity: Math.random() * 0.55 + 0.25,
+          opacity: Math.random() * 0.6 + 0.2,
           color: Math.random() > 0.88 ? "#38bdf8" : Math.random() > 0.95 ? "#a78bfa" : "#ffffff",
-          twinkleSpeed: Math.random() * 0.008 + 0.002, // Slower twinkling for premium feel
+          twinkleSpeed: Math.random() * 0.008 + 0.0025,
           twinkleDir: Math.random() > 0.5 ? 1 : -1,
         });
       }
@@ -41,73 +41,80 @@ export default function SpaceBackground() {
 
     const initAccretionDisk = () => {
       accretionParticles = [];
-      // Slower, cleaner particle count to avoid visual noise (exactly 260 particles)
-      const particleCount = 260;
+      const particleCount = 280; // Optimized clean density
       for (let i = 0; i < particleCount; i++) {
-        const distance = Math.random() * 160 + 80; // Stable orbits
+        const distance = Math.random() * 160 + 80;
         const angle = Math.random() * Math.PI * 2;
-        // Slow cinematic velocity curve
-        const orbitSpeed = (1 / Math.sqrt(distance)) * 0.42; 
+        // Keplerian velocity: v = 1 / sqrt(r)
+        const orbitSpeed = (1 / Math.sqrt(distance)) * 0.38; // Cinematic slow motion
         
+        // Relativistic Interstellar Matter: 100% warm orange-amber cosmic dust particles
+        const rand = Math.random();
+        let colorType = "";
+        let glowColor = "";
+
+        if (rand < 0.7) {
+          colorType = "rgba(249, 115, 22, "; // Orange-Amber matter
+          glowColor = "#f97316";
+        } else {
+          colorType = "rgba(251, 146, 60, "; // Hot light orange matter
+          glowColor = "#fb923c";
+        }
+
         accretionParticles.push({
           distance,
           angle,
           orbitSpeed,
-          size: Math.random() * 1.3 + 0.35,
-          // Hot cosmic indigo, soft violet, and glowing electric blue
-          color: Math.random() > 0.55 
-            ? "rgba(56, 189, 248, " // Sky Blue
-            : Math.random() > 0.3 
-            ? "rgba(139, 92, 246, "  // Violet
-            : "rgba(99, 102, 241, ", // Indigo
+          size: Math.random() * 1.35 + 0.4,
+          color: colorType,
+          glow: glowColor,
           noiseOffset: Math.random() * 100,
         });
       }
     };
 
     const handleMouseMove = (e) => {
-      // Extremely gentle mouse reactive depth
-      mouse.targetX = (e.clientX - window.innerWidth / 2) * 0.04;
-      mouse.targetY = (e.clientY - window.innerHeight / 2) * 0.04;
+      mouse.targetX = (e.clientX - window.innerWidth / 2) * 0.045;
+      mouse.targetY = (e.clientY - window.innerHeight / 2) * 0.045;
     };
 
     const draw = () => {
-      time += 0.0018; // Cinematic slow clock
+      time += 0.0022; // Cinematic slow clock
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Smooth mouse coordination ease
-      mouse.x += (mouse.targetX - mouse.x) * 0.04;
-      mouse.y += (mouse.targetY - mouse.y) * 0.04;
+      mouse.x += (mouse.targetX - mouse.x) * 0.045;
+      mouse.y += (mouse.targetY - mouse.y) * 0.045;
 
       const cx = canvas.width / 2 + mouse.x * 0.25;
       const cy = canvas.height / 2 + mouse.y * 0.25;
 
-      // Deep space background nebula haze (indigo/blue shades)
-      const nebulaGrad = ctx.createRadialGradient(cx, cy, 60, cx, cy, canvas.width * 0.7);
-      nebulaGrad.addColorStop(0, "rgba(8, 8, 36, 0.35)");
-      nebulaGrad.addColorStop(0.5, "rgba(4, 4, 18, 0.12)");
+      // Dark space background nebula haze (deep dark-blue shades)
+      const nebulaGrad = ctx.createRadialGradient(cx, cy, 60, cx, cy, canvas.width * 0.75);
+      nebulaGrad.addColorStop(0, "rgba(8, 8, 32, 0.3)");
+      nebulaGrad.addColorStop(0.5, "rgba(3, 3, 15, 0.1)");
       nebulaGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
       ctx.fillStyle = nebulaGrad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 1. Render Twinkling Stars
+      // 1. Render Stars
       stars.forEach((star) => {
         const posX = (star.x + mouse.x * (star.size * 0.3) + canvas.width) % canvas.width;
         const posY = (star.y + mouse.y * (star.size * 0.3) + canvas.height) % canvas.height;
 
         star.opacity += star.twinkleSpeed * star.twinkleDir;
-        if (star.opacity > 0.8 || star.opacity < 0.15) star.twinkleDir *= -1;
+        if (star.opacity > 0.85 || star.opacity < 0.15) star.twinkleDir *= -1;
 
         ctx.beginPath();
         ctx.arc(posX, posY, star.size, 0, Math.PI * 2);
         ctx.fillStyle = star.color;
-        ctx.globalAlpha = Math.max(0.1, Math.min(0.8, star.opacity));
+        ctx.globalAlpha = Math.max(0.1, Math.min(0.85, star.opacity));
         ctx.fill();
       });
       ctx.globalAlpha = 1.0;
 
-      // 2. MATHEMATICAL RELATIVISTIC BLACK HOLE ACCRETION DISC
-      const singularityRadius = 60; // Clean, massive center
+      // 2. MATHEMATICAL GARGANTUA ACCRETION DISK (ORANGE MATTER ACCRETION DISC)
+      const singularityRadius = 61 + Math.sin(time * 2.5) * 1.5; // Pulsing core
 
       accretionParticles.forEach((p) => {
         p.angle += p.orbitSpeed;
@@ -115,7 +122,7 @@ export default function SpaceBackground() {
         const cosA = Math.cos(p.angle);
         const sinA = Math.sin(p.angle);
 
-        // Standard flat coordinate plane
+        // Horizontal flattened orbital disc coordinates
         const planX = p.distance * cosA;
         const planY = p.distance * sinA * 0.15; // Sleek thin disc
 
@@ -125,8 +132,8 @@ export default function SpaceBackground() {
         let lensedY = planY;
 
         if (isBehind) {
-          lensedY = planY + (planX > 0 ? -1 : 1) * Math.sin(time + p.noiseOffset) * 1.5 - (singularityRadius + p.distance * 0.18) * (planX > 0 ? 1 : -1) * 0.38;
-          lensedX = planX * 1.12;
+          lensedY = planY + (planX > 0 ? -1 : 1) * Math.sin(time + p.noiseOffset) * 1.5 - (singularityRadius + p.distance * 0.2) * (planX > 0 ? 1 : -1) * 0.4;
+          lensedX = planX * 1.15;
         }
 
         const drawX = cx + lensedX;
@@ -135,31 +142,30 @@ export default function SpaceBackground() {
         ctx.beginPath();
         ctx.arc(drawX, drawY, p.size, 0, Math.PI * 2);
         
-        // Soft, highly refined alpha values (never blinding or chaotic)
-        const distancePercent = Math.max(0.08, 1 - (p.distance - 80) / 160);
-        ctx.fillStyle = `${p.color}${distancePercent * 0.58})`;
+        const distancePercent = Math.max(0.1, 1 - (p.distance - 80) / 160);
+        ctx.fillStyle = `${p.color}${distancePercent * 0.65})`;
         ctx.shadowBlur = p.size > 1.1 ? 6 : 0;
-        ctx.shadowColor = p.color.includes("139") ? "#8b5cf6" : "#38bdf8";
+        ctx.shadowColor = p.glow;
         ctx.fill();
       });
       ctx.shadowBlur = 0;
 
-      // 3. Central Event Horizon (Pitch-black mathematical singularity absorbing all photons)
+      // 3. Central Opaque Horizon Singularity (glowing BRIGHT WHITE event boundary)
       const singularityGrad = ctx.createRadialGradient(cx, cy, singularityRadius * 0.88, cx, cy, singularityRadius);
       singularityGrad.addColorStop(0, "#000000");
-      singularityGrad.addColorStop(0.98, "#000000");
-      singularityGrad.addColorStop(1, "rgba(99, 102, 241, 0.12)"); // Soft indigo event boundary edge
+      singularityGrad.addColorStop(0.96, "#000000");
+      singularityGrad.addColorStop(1, "rgba(255, 255, 255, 0.98)"); // Glowing BRIGHT WHITE event boundary
 
       ctx.beginPath();
       ctx.arc(cx, cy, singularityRadius, 0, Math.PI * 2);
       ctx.fillStyle = singularityGrad;
       ctx.fill();
 
-      // Relativistic Lensing boundary accent line
+      // Relativistic deflection outline (Glowing BRIGHT WHITE gravity lensing ring wrapping center)
       ctx.beginPath();
       ctx.arc(cx, cy, singularityRadius + 1, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(99, 102, 241, 0.18)";
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+      ctx.lineWidth = 2.2;
       ctx.stroke();
 
       animationFrameId = requestAnimationFrame(draw);
@@ -184,9 +190,16 @@ export default function SpaceBackground() {
       {/* Dynamic Canvas Stars */}
       <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" />
       
-      {/* Dynamic Vignette Mask to shield foreground text readability (Vignette + dark overlays) */}
-      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(0,0,0,0)_40%,#030303_100%] pointer-events-none" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#030303]/85 via-transparent to-[#030303]/90 pointer-events-none" />
+      {/* Viewport Dark Vignette & Readability Shields */}
+      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(0,0,0,0)_38%,#030303_100%] pointer-events-none" />
+      
+      {/* EXACT USER SPECIFIED READABILITY OVERLAY: background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.55)) */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: "linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.55))"
+        }}
+      />
       
     </div>
   );
