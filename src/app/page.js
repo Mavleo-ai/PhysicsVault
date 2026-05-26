@@ -28,7 +28,8 @@ import {
 import Navbar from "@/components/Navbar";
 import SpaceBackground from "@/components/SpaceBackground";
 import AuthModal from "@/components/AuthModal";
-import { supabase } from "@/lib/supabase";
+import { auth, getUserTier, upgradeUserTier } from "@/lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -74,16 +75,22 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch persistent user session on load
-  const fetchSession = async () => {
-    const { data } = await supabase.auth.getUser();
-    if (data?.user) {
-      setUser(data.user);
-    }
-  };
-
+  // Subscribe to Firebase authenticated session changes
   useEffect(() => {
-    fetchSession();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        const tier = getUserTier(currentUser.uid);
+        setUser({
+          uid: currentUser.uid,
+          email: currentUser.email,
+          displayName: currentUser.displayName || currentUser.email.split("@")[0],
+          tier
+        });
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
   // Cursor glow coordination tracking
@@ -96,8 +103,11 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.error("Sign out error:", e);
+    }
   };
 
   const triggerAuth = (viewType) => {
@@ -178,10 +188,9 @@ export default function Home() {
       image: "/next.svg",
       handler: async function (response) {
         try {
-          const { data, error } = await supabase.auth.upgradeUserTier(planName.toLowerCase());
-          if (error) throw new Error(error);
-
-          await fetchSession();
+          const tier = planName.toLowerCase();
+          upgradeUserTier(user.uid, tier);
+          setUser(prev => prev ? { ...prev, tier } : null);
 
           setReceiptDetails({
             paymentId: response.razorpay_payment_id,

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { X, Mail, Lock, ShieldCheck, Eye, EyeOff, Sparkles, User } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { auth, upgradeUserTier } from "@/lib/firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 
 export default function AuthModal({ isOpen, onClose, view = "login", onAuthSuccess }) {
   const [currentView, setCurrentView] = useState(view);
@@ -64,29 +65,24 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
 
     try {
       if (currentView === "login") {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) throw error;
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
         setSuccessMsg("Access Granted. Study Cockpit opening...");
         setTimeout(() => {
-          onAuthSuccess(data.user);
+          onAuthSuccess(user);
           onClose();
         }, 1200);
       } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-        });
-
-        if (error) throw error;
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        // Initialize default tier status
+        upgradeUserTier(user.uid, "free");
 
         setSuccessMsg("Account Created! Welcome to PhysicsVault.");
         setTimeout(() => {
-          onAuthSuccess(data.user);
+          onAuthSuccess(user);
           onClose();
         }, 1200);
       }
@@ -310,19 +306,23 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
           onClick={async () => {
             setErrorMsg("");
             setLoading(true);
-            // Simulate instant premium Google Sign-In with Mock Session
-            await new Promise((r) => setTimeout(r, 600));
-            const mockGoogleUser = {
-              id: "usr_google_pv",
-              email: "student.profile@gmail.com",
-            };
-            localStorage.setItem("pv_active_user", JSON.stringify(mockGoogleUser));
-            setSuccessMsg("Securing Google Auth session...");
-            setTimeout(() => {
-              onAuthSuccess(mockGoogleUser);
-              onClose();
+            try {
+              const provider = new GoogleAuthProvider();
+              const result = await signInWithPopup(auth, provider);
+              
+              // Initialize default tier status
+              upgradeUserTier(result.user.uid, "free");
+
+              setSuccessMsg("Google Sign-In Successful! Navigating...");
+              setTimeout(() => {
+                onAuthSuccess(result.user);
+                onClose();
+                setLoading(false);
+              }, 1000);
+            } catch (err) {
+              setErrorMsg(err.message || "Google Sign-In failed.");
               setLoading(false);
-            }, 1000);
+            }
           }}
           disabled={loading}
           className="w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 hover:border-white/20 font-semibold text-xs uppercase tracking-wider py-3.5 rounded-xl cursor-pointer transition-all flex items-center justify-center gap-2 disabled:opacity-50"
