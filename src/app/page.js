@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import { 
   Atom, 
   Sparkles, 
@@ -17,13 +16,18 @@ import {
   CreditCard,
   AlertTriangle,
   RefreshCw,
-  X
+  X,
+  Layers,
+  Zap,
+  TrendingUp,
+  Cpu,
+  Bookmark,
+  ChevronDown
 } from "lucide-react";
 
 // Components
 import Navbar from "@/components/Navbar";
 import SpaceBackground from "@/components/SpaceBackground";
-import FloatingAstronaut from "@/components/FloatingAstronaut";
 import AuthModal from "@/components/AuthModal";
 import { supabase } from "@/lib/supabase";
 
@@ -42,7 +46,7 @@ export default function Home() {
   // Interactive AI Doubt Solver state
   const [doubtQuery, setDoubtQuery] = useState("");
   const [chatMessages, setChatMessages] = useState([
-    { role: "assistant", text: "Hello! I am your PhysicsVault AI Study Orb. Ask me any conceptual question or paste a formula from Physics, Chemistry, or Maths!" }
+    { role: "assistant", text: "Hello! I am your PhysicsVault AI Doubt Solver. Ask me any conceptual question or paste a formula from Physics, Chemistry, or Maths!" }
   ]);
   const [isTyping, setIsTyping] = useState(false);
 
@@ -50,6 +54,9 @@ export default function Home() {
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'failure' | null
   const [receiptDetails, setReceiptDetails] = useState(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  // Active notes category tracker
+  const [activeSubj, setActiveSubj] = useState("physics");
 
   // Initializing preloader count-up
   useEffect(() => {
@@ -63,7 +70,7 @@ export default function Home() {
         const step = Math.floor(Math.random() * 15) + 5;
         return Math.min(100, prev + step);
       });
-    }, 100);
+    }, 85);
 
     return () => clearInterval(interval);
   }, []);
@@ -117,7 +124,7 @@ export default function Home() {
     if (queryLower.includes("gravity") || queryLower.includes("kepler") || queryLower.includes("orbit")) {
       reply = "Kepler's Third Law states that the square of the orbital period $T^2$ is proportional to the cube of the semi-major axis $a^3$:\n\n$$T^2 = \\left( \\frac{4\\pi^2}{G(M + m)} \\right) a^3$$\n\nFor satellites orbiting massive centers, we approximate gravity balances as:\n\n$$\\frac{v^2}{r} = \\frac{GM}{r^2} \\implies v = \\sqrt{\\frac{GM}{r}}$$";
     } else if (queryLower.includes("benzene") || queryLower.includes("chemistry") || queryLower.includes("bond")) {
-      reply = "For organic resonance compounds, molecular orbitals form delocalized $\\pi$-electron rings. Let's calculate the resonance energy bounds:\n\n$$\\text{Resonance Energy} = E_{\\text{localized}} - E_{\\text{delocalized}} \\approx 152\\text{ kJ/mol}$$";
+      reply = "Delocalized organic molecular orbitals satisfy Huckel criteria. Let's calculate the resonance energy bounds:\n\n$$\\text{Resonance Energy} = E_{\\text{localized}} - E_{\\text{delocalized}} \\approx 152\\text{ kJ/mol}$$";
     } else if (queryLower.includes("limit") || queryLower.includes("calculus") || queryLower.includes("math")) {
       reply = "Using L'Hôpital's Rule for indeterminate forms $0/0$:\n\n$$\\lim_{x \\to c} \\frac{f(x)}{g(x)} = \\lim_{x \\to c} \\frac{f'(x)}{g'(x)}$$\n\nDifferentiating the numerators and denominators allows direct evaluation.";
     }
@@ -144,10 +151,8 @@ export default function Home() {
 
   // Launch Razorpay Checkout Portal
   const handlePayment = async (planName, priceINR) => {
-    setErrorStatus(null);
     setPaymentStatus(null);
 
-    // 1. Check if user is logged in
     if (!user) {
       triggerAuth("signup");
       return;
@@ -162,7 +167,6 @@ export default function Home() {
       return;
     }
 
-    // Convert price to paise (e.g. ₹200 -> 20000 paise)
     const amountPaise = priceINR * 100;
     const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_StbrZnQ0xnLGXw";
 
@@ -172,17 +176,14 @@ export default function Home() {
       currency: "INR",
       name: "PhysicsVault Studio",
       description: `${planName} Subscription Upgrade`,
-      image: "/next.svg", // Sleek black logo
+      image: "/next.svg",
       handler: async function (response) {
-        // Upgrade mock user session tier in database
         try {
           const { data, error } = await supabase.auth.upgradeUserTier(planName.toLowerCase());
           if (error) throw new Error(error);
 
-          // Refresh user session state
           await fetchSession();
 
-          // Render receipts success popup overlay
           setReceiptDetails({
             paymentId: response.razorpay_payment_id,
             plan: planName,
@@ -192,7 +193,7 @@ export default function Home() {
           });
           setPaymentStatus("success");
         } catch (err) {
-          console.error("Failed to upgrade student clearance tier:", err);
+          console.error("Failed to upgrade student subscription tier:", err);
           setPaymentStatus("failure");
         } finally {
           setCheckoutLoading(false);
@@ -203,7 +204,7 @@ export default function Home() {
         contact: "9999999999",
       },
       theme: {
-        color: "#8b5cf6", // Violet glow accent
+        color: "#8b5cf6",
       },
       modal: {
         ondismiss: function () {
@@ -214,7 +215,7 @@ export default function Home() {
 
     try {
       const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function (response) {
+      rzp.on("payment.failed", function () {
         setPaymentStatus("failure");
         setCheckoutLoading(false);
       });
@@ -225,8 +226,6 @@ export default function Home() {
       setCheckoutLoading(false);
     }
   };
-
-  const [errorStatus, setErrorStatus] = useState(null);
 
   // Floating physics formulas positions
   const formulas = [
@@ -247,49 +246,10 @@ export default function Home() {
         style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px` }}
       />
 
-      {/* Cinematic Preloader */}
-      <AnimatePresence>
-        {loading && (
-          <motion.div 
-            key="preloader"
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#020205]"
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="relative flex items-center justify-center w-36 h-36">
-              <div className="absolute inset-0 border border-t-sky-400 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin" />
-              <div className="absolute inset-3 border border-t-transparent border-r-violet-500 border-b-transparent border-l-transparent rounded-full animate-[spin_1.5s_linear_infinite_reverse]" />
-              <div className="absolute inset-6 border border-t-transparent border-r-transparent border-b-sky-400 border-l-transparent rounded-full animate-[spin_0.8s_linear_infinite]" />
-              <GraduationCap className="w-8 h-8 text-sky-400 animate-pulse" />
-            </div>
-
-            <motion.div 
-              className="mt-8 text-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <h2 className="font-display font-extrabold text-xs tracking-[0.25em] uppercase bg-clip-text text-transparent bg-gradient-to-r from-sky-400 to-violet-400">
-                INITIALIZING STUDY HUB
-              </h2>
-              <div className="w-48 h-[2px] bg-zinc-800 rounded-full mt-3 overflow-hidden mx-auto">
-                <div 
-                  className="h-full bg-gradient-to-r from-sky-400 to-violet-500 rounded-full transition-all duration-150"
-                  style={{ width: `${loadingPercent}%` }}
-                />
-              </div>
-              <span className="block text-[10px] font-mono text-zinc-500 mt-2 tracking-widest">
-                {loadingPercent}% STABILIZED
-              </span>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Background Starfield and Black Hole */}
+      {/* Background Starfield and Accretion Disk Black Hole */}
       {!loading && (
         <>
           <SpaceBackground />
-          <FloatingAstronaut />
           
           <Navbar 
             onAuthClick={triggerAuth} 
@@ -317,7 +277,7 @@ export default function Home() {
 
           <main className="relative z-10">
             
-            {/* 1. CINEMATIC ACADEMIC HERO SECTION */}
+            {/* 1. CINEMATIC HERO SECTION (PURE MOTION + ABSTRACT GEOMETRY) */}
             <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-12 pt-28 pb-16 max-w-7xl mx-auto overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
@@ -330,7 +290,7 @@ export default function Home() {
                     transition={{ duration: 0.6 }}
                     className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/5 backdrop-blur-md shadow-[0_0_15px_rgba(139,92,246,0.1)]"
                   >
-                    <GraduationCap className="w-3.5 h-3.5 text-violet-400 animate-pulse" />
+                    <GraduationCap className="w-3.5 h-3.5 text-violet-400" />
                     <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-violet-400">
                       PREMIUM JEE & NEET STUDY PORTAL
                     </span>
@@ -402,25 +362,72 @@ export default function Home() {
 
                 </div>
 
-                {/* Floating AI assistant Orb & Dashboard preview */}
-                <div className="lg:col-span-5 flex flex-col items-center justify-center relative z-20 space-y-6">
+                {/* 3D ABSTRACT GEOMETRIC ORB SYSTEM (REPLACING THE AI ORB IMAGE) */}
+                <div className="lg:col-span-5 flex flex-col items-center justify-center relative z-20 space-y-8">
                   
-                  {/* Floating AI Orb Container */}
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative w-48 h-48 md:w-56 md:h-56 select-none flex items-center justify-center filter drop-shadow-[0_0_35px_rgba(56,189,248,0.3)]"
-                  >
-                    <Image
-                      src="/ai_orb.png"
-                      alt="Cosmic AI Doubt Solving Orb"
-                      width={220}
-                      height={220}
-                      className="object-contain"
-                      priority
+                  {/* CSS-generated 3D Rotating Holographic Orb */}
+                  <div className="relative w-64 h-64 md:w-72 md:h-72 flex items-center justify-center select-none pointer-events-none">
+                    
+                    {/* Glowing Core Sphere */}
+                    <motion.div 
+                      animate={{
+                        scale: [0.94, 1.06, 0.94],
+                        opacity: [0.8, 1, 0.8],
+                      }}
+                      transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute w-36 h-36 rounded-full bg-gradient-to-tr from-sky-400 via-sky-300 to-violet-600 filter blur-xl opacity-80 mix-blend-screen"
                     />
-                    <div className="absolute -inset-4 border border-sky-400/20 border-dashed rounded-full animate-[spin_40s_linear_infinite]" />
-                  </motion.div>
+
+                    {/* Core Core Ring Frame */}
+                    <div className="absolute w-40 h-40 rounded-full border border-sky-400/30 animate-[spin_10s_linear_infinite]" />
+                    
+                    {/* Outer Coordinate Ring 1 */}
+                    <div 
+                      className="absolute w-52 h-52 rounded-full border border-violet-500/25 border-dashed animate-[spin_24s_linear_infinite]"
+                      style={{ transform: "rotateX(60deg) rotateY(20deg)" }}
+                    />
+
+                    {/* Outer Coordinate Ring 2 */}
+                    <div 
+                      className="absolute w-56 h-56 rounded-full border border-sky-500/20 animate-[spin_16s_linear_infinite_reverse]"
+                      style={{ transform: "rotateX(-45deg) rotateY(45deg)" }}
+                    />
+
+                    {/* Outer Relativistic Bending Ring 3 */}
+                    <div 
+                      className="absolute w-64 h-64 rounded-full border border-violet-400/10 border-double animate-[spin_32s_linear_infinite]"
+                      style={{ transform: "rotateX(80deg) rotateY(-10deg)" }}
+                    />
+
+                    {/* Nested glowing central glass lens */}
+                    <div className="absolute w-28 h-28 rounded-full bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-center shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+                      <Atom className="w-8 h-8 text-sky-400 animate-spin-slow" />
+                    </div>
+
+                    {/* Orbital floating energy nodes */}
+                    {[...Array(4)].map((_, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{
+                          rotate: 360,
+                        }}
+                        transition={{
+                          duration: 8 + i * 2,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                        className="absolute w-full h-full"
+                      >
+                        <div 
+                          className="absolute w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]"
+                          style={{
+                            top: "10%",
+                            left: `${20 + i * 15}%`
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
 
                   {/* Student Study Dashboard Mockup */}
                   <motion.div 
@@ -435,7 +442,7 @@ export default function Home() {
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                         <span className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-                          STUDY STATUS
+                          STUDY COCKPIT STATUS
                         </span>
                       </div>
                       <span className="text-[10px] font-mono text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full">
@@ -511,13 +518,13 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Bento Grid Features Layout */}
+              {/* Bento Grid Features Layout with Animated Hover Borders */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
                 {/* Bento Card 1: Elite Physics Notes */}
-                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
                   <div className="absolute -right-8 -top-8 w-24 h-24 bg-violet-600/10 rounded-full blur-2xl group-hover:bg-violet-600/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.15)]">
                     <GraduationCap className="w-5 h-5 text-violet-400" />
                   </div>
                   <div className="space-y-2 mt-8">
@@ -535,9 +542,9 @@ export default function Home() {
                 </div>
 
                 {/* Bento Card 2: Interactive Textbooks */}
-                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
                   <div className="absolute -right-8 -top-8 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.15)]">
                     <Atom className="w-5 h-5 text-sky-400" />
                   </div>
                   <div className="space-y-2 mt-8">
@@ -545,7 +552,7 @@ export default function Home() {
                       Interactive Textbooks
                     </h4>
                     <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                      Digital interactive access to full Physics, Chemistry, and Maths curricula loaded with 3D model illustrations.
+                      Digital interactive access to full Physics, Chemistry, and Maths curricula loaded with vector coordinate tools.
                     </p>
                   </div>
                   <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-sky-400 font-semibold group-hover:text-white transition-colors">
@@ -555,9 +562,9 @@ export default function Home() {
                 </div>
 
                 {/* Bento Card 3: 24/7 AI Support */}
-                <div className="glass-panel glass-panel-hover rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden">
+                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
                   <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.15)]">
                     <Sparkles className="w-5 h-5 text-emerald-400 animate-pulse" />
                   </div>
                   <div className="space-y-2 mt-8">
@@ -578,29 +585,103 @@ export default function Home() {
 
             </section>
 
-            {/* 4. SYLLABUS & TEXTBOOKS INTERACTIVE GRAPHICS */}
+            {/* 4. HOLOGRAPHIC SYLLABUS & TEXTBOOKS CONSOLE (REPLACING THE TEXTBOOKS PNG) */}
             <section id="notes" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Science Textbooks Display */}
-                <div className="lg:col-span-5 flex items-center justify-center relative z-20">
-                  <motion.div
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-                    className="relative w-80 h-80 md:w-96 md:h-96 filter drop-shadow-[0_0_40px_rgba(139,92,246,0.25)]"
-                  >
-                    <Image
-                      src="/textbooks.png"
-                      alt="Physics Vault Textbooks"
-                      width={380}
-                      height={380}
-                      className="object-contain animate-[pulse_5s_ease-in-out_infinite]"
-                      priority
-                    />
-                  </motion.div>
+                {/* 3D Holographic Textbook console mockup */}
+                <div className="lg:col-span-5 flex items-center justify-center relative z-20 w-full">
+                  <div className="w-full max-w-sm glass-panel rounded-2xl border border-white/10 p-6 shadow-2xl relative overflow-hidden flex flex-col gap-4">
+                    <div className="absolute -top-12 -left-12 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
+                    
+                    {/* Header */}
+                    <div className="flex justify-between items-center pb-3 border-b border-white/5">
+                      <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                        ACADEMIC SYLLABUS HOLOGRAM
+                      </span>
+                      <Layers className="w-4 h-4 text-sky-400 animate-pulse" />
+                    </div>
+
+                    {/* Tabs subject controllers */}
+                    <div className="flex gap-2 bg-black/40 p-1.5 border border-white/5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider">
+                      {["physics", "chemistry", "maths"].map((sub) => (
+                        <button
+                          key={sub}
+                          onClick={() => setActiveSubj(sub)}
+                          className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                            activeSubj === sub 
+                              ? "bg-gradient-to-r from-sky-400 to-violet-500 text-white shadow-md shadow-sky-500/10" 
+                              : "text-zinc-500 hover:text-white"
+                          }`}
+                        >
+                          {sub}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Mock syllabus chapters metrics details */}
+                    <div className="space-y-3.5 py-2">
+                      {activeSubj === "physics" && (
+                        <>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 1: Relativistic Dynamics</span>
+                            <span className="text-sky-400">95% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 2: Electrostatics & Fields</span>
+                            <span className="text-sky-400">74% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 3: Wave Mechanics</span>
+                            <span className="text-sky-400">55% complete</span>
+                          </div>
+                        </>
+                      )}
+                      {activeSubj === "chemistry" && (
+                        <>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 1: Delocalized Ring Bounds</span>
+                            <span className="text-emerald-400">88% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 2: Entropy Calculations</span>
+                            <span className="text-emerald-400">62% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 3: Quantum Gas Kinetics</span>
+                            <span className="text-emerald-400">45% complete</span>
+                          </div>
+                        </>
+                      )}
+                      {activeSubj === "maths" && (
+                        <>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 1: Limits & Vector calculus</span>
+                            <span className="text-violet-400">92% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 2: Matrix Integrations</span>
+                            <span className="text-violet-400">65% complete</span>
+                          </div>
+                          <div className="flex justify-between text-xs font-semibold text-white">
+                            <span>Chapter 3: Relativistic Algorithms</span>
+                            <span className="text-violet-400">30% complete</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="h-[1px] bg-white/5 w-full my-1" />
+
+                    <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500">
+                      <span>TELEMETRY STABLE</span>
+                      <span className="text-sky-400 font-bold">READY</span>
+                    </div>
+
+                  </div>
                 </div>
 
-                {/* Subject chapters list */}
+                {/* Animated Textbook Cards */}
                 <div className="lg:col-span-7 space-y-8 relative z-20">
                   <div className="space-y-3">
                     <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
@@ -656,7 +737,7 @@ export default function Home() {
                         </div>
                         <a 
                           href="#pricing"
-                          className="text-[10px] font-bold uppercase tracking-wider text-sky-400 mt-4 block"
+                          className="text-[10px] font-bold uppercase tracking-wider text-sky-400 mt-4 block font-mono"
                         >
                           OPEN TEXTBOOK
                         </a>
@@ -761,7 +842,7 @@ export default function Home() {
                         type="text"
                         value={doubtQuery}
                         onChange={(e) => setDoubtQuery(e.target.value)}
-                        placeholder="e.g. Solve Kepler's third gravity law, or limits calculus..."
+                        placeholder="Solve Kepler's third gravity law, or limits calculus..."
                         className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-sky-400 focus:ring-0 font-medium"
                       />
                       <button
@@ -830,7 +911,7 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3 pt-4 border-t border-white/5 mt-4">
+                    <div className="flex items-center gap-3 pt-4 border-t border-white/5 mt-4 font-sans">
                       <div className="relative w-9 h-9 rounded-full overflow-hidden border border-sky-400/20 shrink-0">
                         <img 
                           src={rev.image} 
@@ -851,10 +932,12 @@ export default function Home() {
 
             </section>
 
-            {/* 7. RAZORPAY SUBSCRIPTIONS - PRICING SECTION */}
+            {/* 7. SECURE RAZORPAY BILLING GRID - THE PRICING SECTION (VISUAL FOCUS) */}
             <section id="pricing" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
-              <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-violet-600/5 rounded-full blur-3xl pointer-events-none" />
+              
+              {/* Dynamic glowing abstract blur lights background behind pricing cards */}
+              <div className="absolute top-10 left-10 w-[500px] h-[500px] bg-sky-500/10 rounded-full blur-[140px] pointer-events-none animate-pulse-slow" />
+              <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[140px] pointer-events-none animate-pulse-slow" />
 
               <div className="text-center max-w-2xl mx-auto mb-20 space-y-3 relative z-10">
                 <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
@@ -868,7 +951,7 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Checkout Progress Indicator */}
+              {/* Checkout Progress Loader */}
               {checkoutLoading && (
                 <div className="flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-2xl max-w-sm mx-auto mb-8 animate-pulse text-xs text-sky-400 gap-2">
                   <RefreshCw className="w-4 h-4 animate-spin" />
@@ -876,12 +959,12 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Pricing Cards */}
+              {/* Pricing Cards: Transparent Glassmorphism, Rounded Rectangles, Apple-Inspired clean UI */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto relative z-20">
                 
                 {/* CARD 1: ASPIRANT */}
                 <div 
-                  className="animated-border rounded-2xl p-8 flex flex-col justify-between min-h-[460px] cursor-pointer"
+                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] cursor-pointer"
                   onClick={() => handlePayment("Aspirant", 200)}
                 >
                   <div className="space-y-6">
@@ -890,26 +973,26 @@ export default function Home() {
                         <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
                           STUDENT PASS
                         </span>
-                        <h3 className="font-display font-extrabold text-2xl text-white mt-1">Aspirant</h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">Flexible monthly study cockpit</p>
+                        <h3 className="font-display font-extrabold text-3xl text-white mt-1">Aspirant</h3>
+                        <p className="text-xs text-zinc-500 mt-1">Flexible monthly study cockpit</p>
                       </div>
                       <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-sky-400/10 border border-sky-400/20 text-sky-400 uppercase tracking-widest">
                         Launch Price
                       </span>
                     </div>
 
-                    <div className="py-2 border-b border-white/5">
+                    <div className="py-4 border-b border-white/5">
                       <div className="flex items-baseline gap-2">
                         <span className="text-zinc-600 line-through text-sm font-medium">₹299/mo</span>
-                        <span className="text-4xl font-display font-extrabold text-white">₹200</span>
+                        <span className="text-5xl font-display font-extrabold text-white">₹200</span>
                         <span className="text-zinc-400 text-xs">/ month</span>
                       </div>
-                      <span className="block text-[10px] font-mono text-zinc-500 mt-1 uppercase tracking-wider">
+                      <span className="block text-[10px] font-mono text-zinc-500 mt-2 uppercase tracking-wider">
                         Cancel anytime · Includes 7-Day Free Trial
                       </span>
                     </div>
 
-                    <ul className="space-y-3.5 text-xs text-zinc-400">
+                    <ul className="space-y-4 text-xs text-zinc-400">
                       {[
                         "Interactive syllabus models (Physics, Chemistry, Maths)",
                         "High-yield digital notes and textbooks",
@@ -917,8 +1000,8 @@ export default function Home() {
                         "Persistent browser project state storage",
                         "Standard student dashboard support",
                       ].map((feat) => (
-                        <li key={feat} className="flex items-center gap-2.5">
-                          <div className="w-4 h-4 rounded-full bg-sky-400/10 flex items-center justify-center shrink-0">
+                        <li key={feat} className="flex items-center gap-3">
+                          <div className="w-4.5 h-4.5 rounded-full bg-sky-400/10 flex items-center justify-center shrink-0 border border-sky-400/20">
                             <Check className="w-3 h-3 text-sky-400" />
                           </div>
                           <span className="font-medium">{feat}</span>
@@ -928,7 +1011,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/5">
-                    <button className="w-full py-3.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-sky-500/10">
+                    <button className="w-full py-4 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/30 text-sky-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-sky-500/10">
                       Start Now
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -937,7 +1020,7 @@ export default function Home() {
 
                 {/* CARD 2: TITAN */}
                 <div 
-                  className="animated-border rounded-2xl p-8 flex flex-col justify-between min-h-[460px] relative overflow-hidden cursor-pointer"
+                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] relative overflow-hidden cursor-pointer"
                   onClick={() => handlePayment("Titan", 1500)}
                 >
                   <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
@@ -949,26 +1032,26 @@ export default function Home() {
                         <span className="text-[10px] font-mono tracking-widest text-violet-400 uppercase font-semibold">
                           COMMANDER PASS
                         </span>
-                        <h3 className="font-display font-extrabold text-2xl text-white mt-1">Titan</h3>
-                        <p className="text-xs text-zinc-500 mt-0.5">Ultimate annual study station</p>
+                        <h3 className="font-display font-extrabold text-3xl text-white mt-1">Titan</h3>
+                        <p className="text-xs text-zinc-500 mt-1">Ultimate annual study station</p>
                       </div>
                       <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-violet-400 uppercase tracking-widest shadow-md shadow-violet-500/10">
                         Founding Member lock
                       </span>
                     </div>
 
-                    <div className="py-2 border-b border-white/5">
+                    <div className="py-4 border-b border-white/5">
                       <div className="flex items-baseline gap-2">
                         <span className="text-zinc-600 line-through text-sm font-medium">₹799/mo</span>
-                        <span className="text-4xl font-display font-extrabold text-white">₹1,500</span>
+                        <span className="text-5xl font-display font-extrabold text-white">₹1,500</span>
                         <span className="text-zinc-400 text-xs">/ year</span>
                       </div>
-                      <span className="inline-block text-[10px] font-mono text-violet-400 font-bold bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-md mt-1 uppercase tracking-wider">
+                      <span className="inline-block text-[10px] font-mono text-violet-400 font-bold bg-violet-500/10 border border-violet-500/20 px-2.5 py-0.5 rounded-md mt-2 uppercase tracking-wider">
                         ₹125/mo · Save 37% Overall
                       </span>
                     </div>
 
-                    <ul className="space-y-3.5 text-xs text-zinc-400">
+                    <ul className="space-y-4 text-xs text-zinc-400">
                       {[
                         "Unlimited orbital syllabus models & simulations",
                         "High-yield digital notes and all premium textbooks",
@@ -977,8 +1060,8 @@ export default function Home() {
                         "Priority telemetry line to Flight Command",
                         "Exclusive early-access academic test series",
                       ].map((feat) => (
-                        <li key={feat} className="flex items-center gap-2.5">
-                          <div className="w-4 h-4 rounded-full bg-violet-400/10 flex items-center justify-center shrink-0">
+                        <li key={feat} className="flex items-center gap-3">
+                          <div className="w-4.5 h-4.5 rounded-full bg-violet-400/10 flex items-center justify-center shrink-0 border border-violet-400/20">
                             <Check className="w-3 h-3 text-violet-400" />
                           </div>
                           <span className="font-medium text-zinc-300">{feat}</span>
@@ -988,7 +1071,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-white/5">
-                    <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-violet-500/25">
+                    <button className="w-full py-4 rounded-xl bg-gradient-to-r from-sky-400 to-violet-500 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-violet-500/25">
                       Go Titan
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
@@ -1015,7 +1098,7 @@ export default function Home() {
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 max-w-sm leading-relaxed">
-                    A premium modern educational studio. Dedicated to high-fidelity astrophysical computational structures and advanced JEE/NEET study notes simulations.
+                    A premium modern educational studio. Dedicated to high-precision computational structures and advanced JEE/NEET study note simulations. Powered entirely by pure motion, light, and geometry.
                   </p>
                 </div>
 
@@ -1023,9 +1106,9 @@ export default function Home() {
                   <h5 className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                     ACADEMICS
                   </h5>
-                  <ul className="space-y-2 text-xs text-zinc-400">
+                  <ul className="space-y-2 text-xs text-zinc-400 font-sans">
                     <li><a href="#" className="hover:text-white transition-colors">Study Cockpit</a></li>
-                    <li><a href="#notes" className="hover:text-white transition-colors">Interactive Textbooks</a></li>
+                    <li><a href="#notes" className="hover:text-white transition-colors">Interactive Syllabus</a></li>
                     <li><a href="#pricing" className="hover:text-white transition-colors">Pricing pass plans</a></li>
                   </ul>
                 </div>
@@ -1034,15 +1117,15 @@ export default function Home() {
                   <h5 className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                     SECTOR COMS
                   </h5>
-                  <ul className="space-y-2 text-xs text-zinc-400">
-                    <li><span className="text-zinc-500">Academic:</span> cockpit@physicsvault.edu</li>
-                    <li><span className="text-zinc-500">Base:</span> Kepler Quadrant, System 12</li>
+                  <ul className="space-y-2 text-xs text-zinc-400 font-sans">
+                    <li><span className="text-zinc-500 font-mono">Academic:</span> cockpit@physicsvault.edu</li>
+                    <li><span className="text-zinc-500 font-mono">Base:</span> Kepler Quadrant, System 12</li>
                   </ul>
                 </div>
               </div>
 
               <div className="flex flex-col sm:flex-row items-center justify-between text-[10px] text-zinc-500 border-t border-white/5 pt-8 font-mono tracking-wider">
-                <span>© 2026 PHYSICSVAULT STUDIO. COCKPIT SYSTEMS OPERATIONAL.</span>
+                <span>© 2026 PHYSICSVAULT STUDIO. SYSTEMS COMPLIED STABLE.</span>
                 <div className="flex gap-4 mt-4 sm:mt-0">
                   <a href="#" className="hover:text-white transition-colors">STUDY PRIVACY</a>
                   <a href="#" className="hover:text-white transition-colors">TERMS OF FLIGHT</a>
@@ -1086,7 +1169,6 @@ export default function Home() {
                         <p className="text-xs text-zinc-400">Your student study cockpit has been elevated to the {receiptDetails?.plan} Plan clearance.</p>
                       </div>
 
-                      {/* Visual Receipt */}
                       <div className="bg-white/3 border border-white/5 rounded-xl p-4 text-left font-mono text-[10px] text-zinc-400 space-y-2.5">
                         <div className="flex justify-between">
                           <span>RECEIPT PLAN:</span>
@@ -1119,7 +1201,7 @@ export default function Home() {
                         <AlertTriangle className="w-8 h-8 text-red-400 animate-bounce" />
                       </div>
                       <div className="space-y-2">
-                        <h3 className="font-display font-extrabold text-2xl text-white">TRANSACTION TIMEOUT</h3>
+                        <h3 className="font-display font-extrabold text-2xl text-white">TRANSACTION ERROR</h3>
                         <p className="text-xs text-zinc-400">The billing cockpit encountered an external payment error. No amount has been debited.</p>
                       </div>
                       <button
