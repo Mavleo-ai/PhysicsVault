@@ -44,9 +44,10 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
         <div className="hidden md:flex items-center gap-8">
           {[
             { label: "Home", href: "#" },
+            { label: "Notes", href: "#notes" },
             { label: "Features", href: "#features" },
             { label: "Pricing", href: "#pricing" },
-            { label: "About", href: "#about" },
+            { label: "Reviews", href: "#reviews" },
             { label: "Contact", href: "#contact" },
           ].map((link) => (
             <a
@@ -112,9 +113,10 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
           <div className="flex flex-col gap-4">
             {[
               { label: "Home", href: "#" },
+              { label: "Notes", href: "#notes" },
               { label: "Features", href: "#features" },
               { label: "Pricing", href: "#pricing" },
-              { label: "About", href: "#about" },
+              { label: "Reviews", href: "#reviews" },
               { label: "Contact", href: "#contact" },
             ].map((link) => (
               <a

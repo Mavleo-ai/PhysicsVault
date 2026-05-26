@@ -50,7 +50,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
     setLoading(true);
 
     if (currentView === "signup" && !agreeTerms) {
-      setErrorMsg("You must agree to the Cosmic Terms & Conditions.");
+      setErrorMsg("You must agree to the Terms of Service.");
       setLoading(false);
       return;
     }
@@ -64,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
 
         if (error) throw error;
 
-        setSuccessMsg("Access Granted. Portal opening...");
+        setSuccessMsg("Access Granted. Study Cockpit opening...");
         setTimeout(() => {
           onAuthSuccess(data.user);
           onClose();
@@ -77,14 +77,14 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
 
         if (error) throw error;
 
-        setSuccessMsg("Account Created! Cosmic clearance granted.");
+        setSuccessMsg("Account Created! Welcome to PhysicsVault.");
         setTimeout(() => {
           onAuthSuccess(data.user);
           onClose();
         }, 1200);
       }
     } catch (err) {
-      setErrorMsg(err.message || "An orbital error occurred. Try again.");
+      setErrorMsg(err.message || "An authorization error occurred. Try again.");
     } finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
     if (passwordStrength === 1) return { label: "Weak", color: "bg-red-500 neon-glow-red" };
     if (passwordStrength === 2) return { label: "Moderate", color: "bg-amber-500 neon-glow-amber" };
     if (passwordStrength === 3) return { label: "Strong", color: "bg-emerald-500 neon-glow-emerald" };
-    return { label: "Quantum Secure", color: "bg-sky-400 neon-glow-blue" };
+    return { label: "Academic Secure", color: "bg-sky-400 neon-glow-blue" };
   };
 
   const strength = getStrengthLabel();
@@ -129,12 +129,12 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
             <Sparkles className="w-6 h-6 text-sky-400 animate-pulse" />
           </div>
           <h3 className="font-display font-extrabold text-xl tracking-wider text-white">
-            {currentView === "login" ? "PORTAL INTERFACE" : "INITIALIZE Clearance"}
+            {currentView === "login" ? "STUDENT PORTAL" : "CREATE STUDY ACCOUNT"}
           </h3>
           <p className="text-xs text-zinc-400 mt-1">
             {currentView === "login" 
-              ? "Access your PhysicsVault simulation cockpit." 
-              : "Register as a Founding Member to start exploring."}
+              ? "Access your PhysicsVault academic cockpit." 
+              : "Register as a student to start learning."}
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
           {/* Email input field */}
           <div className="space-y-1">
             <label className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-              COSMIC EMAIL ADDRESS
+              STUDENT EMAIL ADDRESS
             </label>
             <div className="relative">
               <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500" />
@@ -153,7 +153,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="pilot@physicsvault.space"
+                placeholder="student@physicsvault.edu"
                 className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition-all font-medium"
               />
             </div>
@@ -162,7 +162,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
           {/* Password input field */}
           <div className="space-y-1">
             <label className="text-[10px] font-mono tracking-widest text-zinc-400 uppercase">
-              DECRYPT ACCESS KEYS
+              SECURE ACCESS PASSWORD
             </label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500" />
@@ -188,7 +188,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
           {currentView === "signup" && (
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between items-center text-[10px] font-mono">
-                <span className="text-zinc-500 uppercase">KEY STRENGTH</span>
+                <span className="text-zinc-500 uppercase">PASSWORD STRENGTH</span>
                 <span className="text-sky-400 font-bold uppercase">{strength.label}</span>
               </div>
               <div className="h-1.5 w-full bg-zinc-800/80 rounded-full overflow-hidden flex gap-[2px]">
@@ -217,7 +217,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
                 Remember login
               </label>
               <a href="#" className="text-sky-400 hover:underline">
-                Lost Coordinates?
+                Reset password?
               </a>
             </div>
           ) : (
@@ -232,7 +232,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
               <label htmlFor="agree" className="text-zinc-400 cursor-pointer select-none">
                 I agree to the{" "}
                 <a href="#" className="text-sky-400 hover:underline">
-                  Orbital Terms of Flight
+                  Academic Terms of Service
                 </a>{" "}
                 and privacy protocol.
               </label>
@@ -262,7 +262,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                {currentView === "login" ? "INITIALIZE COCKPIT" : "CONFIRM CLEARANCE"}
+                {currentView === "login" ? "ENTER PORTAL" : "CREATE ACCOUNT"}
               </>
             )}
           </button>
@@ -274,7 +274,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
             <div className="w-full border-t border-white/5" />
           </div>
           <span className="relative bg-[#090915] px-3 text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
-            OR COMMUNICATE VIA
+            OR SECURELY SIGN IN WITH
           </span>
         </div>
 
@@ -287,7 +287,7 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
             await new Promise((r) => setTimeout(r, 600));
             const mockGoogleUser = {
               id: "usr_google_pv",
-              email: "cosmic.visitor@google.com",
+              email: "student.profile@gmail.com",
             };
             localStorage.setItem("pv_active_user", JSON.stringify(mockGoogleUser));
             setSuccessMsg("Securing Google Auth session...");
@@ -318,31 +318,31 @@ export default function AuthModal({ isOpen, onClose, view = "login", onAuthSucce
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          Google Auth Cockpit
+          Google Student Sign-In
         </button>
 
         {/* Footer Toggle */}
         <div className="text-center mt-6 text-xs text-zinc-500 font-medium">
           {currentView === "login" ? (
             <>
-              New to this sector?{" "}
+              New to PhysicsVault?{" "}
               <button 
                 type="button" 
                 onClick={() => setCurrentView("signup")} 
                 className="text-sky-400 hover:underline font-bold"
               >
-                Register Ship
+                Sign Up
               </button>
             </>
           ) : (
             <>
-              Already verified?{" "}
+              Already registered?{" "}
               <button 
                 type="button" 
                 onClick={() => setCurrentView("login")} 
                 className="text-sky-400 hover:underline font-bold"
               >
-                Login Cockpit
+                Login
               </button>
             </>
           )}
