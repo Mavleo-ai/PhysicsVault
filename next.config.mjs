@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// Next.js App Router configuration for Vercel deployment
 const nextConfig = {
   allowedDevOrigins: ["192.168.0.102", "192.168.0.102:3000", "localhost:3000"],
   env: {
