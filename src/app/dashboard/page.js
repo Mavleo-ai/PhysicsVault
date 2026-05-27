@@ -1,59 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { 
-  auth, 
-  getUserTier, 
-  upgradeUserTier 
-} from "@/lib/firebase";
-import { 
-  Sparkles, 
-  GraduationCap, 
-  Atom, 
-  Send, 
-  LogOut, 
-  ShieldCheck, 
-  BookOpen, 
-  CheckCircle,
-  HelpCircle
+import { auth, getUserTier, upgradeUserTier } from "@/lib/firebase";
+import {
+  loadStudyData,
+  saveStudyData,
+  updateStreak,
+  resetDailyIfNeeded,
+  XP_REWARDS,
+} from "@/lib/studyStore";
+import {
+  LogOut,
+  ShieldCheck,
+  LayoutDashboard,
+  BookOpen,
 } from "lucide-react";
+
+import DriveResourcesPanel from "@/components/DriveResourcesPanel";
+
 import SpaceBackground from "@/components/SpaceBackground";
+import AIDoubtSolver from "@/components/AIDoubtSolver";
+import PomodoroTimer from "@/components/PomodoroTimer";
+import SubjectTracker from "@/components/SubjectTracker";
+import TaskManager from "@/components/TaskManager";
+import StudyAnalytics from "@/components/StudyAnalytics";
+import Sidebar from "@/components/Sidebar";
+import AmbientControls from "@/components/AmbientControls";
+
+const STUDY_STRATEGIES_VIDEOS = [
+  { id: "3fKXzR0IDRU", title: "JEE Advanced Strategy & Timetable", desc: "Top preparation blueprint to crack JEE Advanced with optimal daily routines." },
+  { id: "Vhrfa0Vbb5A", title: "IIT JEE Revision Masterclass", desc: "Proven methods to revise vast physics and maths syllabus systematically." },
+  { id: "gOFxExkhS2o", title: "Effective Doubt Solving Guide", desc: "How to use AI models and text guides to resolve conceptual math roadblocks." },
+  { id: "_YxtwAjBLFs", title: "Mechanics & Calculus Worksheets", desc: "Solving high-demanding physics rotational motion and integral calculus papers." },
+  { id: "a3YHEkci3P4", title: "Ultimate Exam Day Mindset", desc: "Tips to maintain extreme focus and calmness under high pressure bounds." },
+  { id: "LQoDQ2-lN2Q", title: "JEE Problem Solving Mastery", desc: "Mastering complex numeric calculations and elimination tricks." },
+  { id: "VHXEU4rq6rY", title: "Scientific Memory Hacks", desc: "Active recall study methods to memorize complex constants and rules." },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeSubj, setActiveSubj] = useState("physics");
+  const [studyData, setStudyData] = useState(null);
+  const [activeTab, setActiveTab] = useState("command"); // command | ai | library
+  const [activeVideoId, setActiveVideoId] = useState("3fKXzR0IDRU");
 
-  // AI Doubt Solver state
-  const [doubtQuery, setDoubtQuery] = useState("");
-  const [chatMessages, setChatMessages] = useState([
-    { role: "assistant", text: "Welcome to your Premium Doubt Solver. Ask me any conceptual question or paste a formula!" }
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-
+  // Firebase auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
-        // Protected route redirection
         router.push("/login");
       } else {
-        // Load persistent student tier matching their unique Firebase ID
         const tier = getUserTier(currentUser.uid);
         setUser({
           uid: currentUser.uid,
           email: currentUser.email,
           displayName: currentUser.displayName || currentUser.email.split("@")[0],
-          tier
+          tier,
         });
+
+        // Load study data and apply daily resets + streak updates
+        let data = loadStudyData(currentUser.uid);
+        data.stats = resetDailyIfNeeded(data.stats);
+        data.stats = updateStreak(data.stats);
+
+        // Daily login XP (once per day)
+        const today = new Date().toDateString();
+        if (data.stats.lastLoginXPDate !== today) {
+          data.stats.xp += XP_REWARDS.DAILY_LOGIN;
+          data.stats.lastLoginXPDate = today;
+        }
+
+        saveStudyData(currentUser.uid, data);
+        setStudyData(data);
         setLoading(false);
       }
     });
 
     return () => unsubscribe();
   }, [router]);
+
+  // Handle tab initialization via query parameters (e.g. /dashboard?tab=strategies)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam && ["command", "ai", "library", "strategies"].includes(tabParam)) {
+        setActiveTab(tabParam);
+      }
+    }
+  }, []);
+
+  // Persist study data on every update
+  const handleStudyUpdate = useCallback(
+    (newData) => {
+      setStudyData(newData);
+      if (user?.uid) {
+        saveStudyData(user.uid, newData);
+      }
+    },
+    [user]
+  );
 
   const handleLogout = async () => {
     try {
@@ -64,280 +113,545 @@ export default function DashboardPage() {
     }
   };
 
-  const handleSolveDoubt = async (e) => {
-    e.preventDefault();
-    if (!doubtQuery.trim()) return;
-
-    const userQ = doubtQuery;
-    setChatMessages(prev => [...prev, { role: "user", text: userQ }]);
-    setDoubtQuery("");
-    setIsTyping(true);
-
-    await new Promise(resolve => setTimeout(resolve, 1200));
-
-    let reply = "Here is the step-by-step mathematical deduction:\n\nUsing the Schrödinger equation:\n\n$$-\\frac{\\hbar^2}{2m} \\nabla^2 \\Psi + V\\Psi = E\\Psi$$\n\nIntegrating over bounded energy levels confirms orbital stability.";
-    
-    const queryLower = userQ.toLowerCase();
-    if (queryLower.includes("gravity") || queryLower.includes("kepler") || queryLower.includes("orbit")) {
-      reply = "Kepler's Third Law states that the square of the orbital period $T^2$ is proportional to the cube of the semi-major axis $a^3$:\n\n$$T^2 = \\left( \\frac{4\\pi^2}{G(M + m)} \\right) a^3$$\n\nFor satellites orbiting massive centers, we approximate gravity balances as:\n\n$$\\frac{v^2}{r} = \\frac{GM}{r^2} \\implies v = \\sqrt{\\frac{GM}{r}}$$";
-    } else if (queryLower.includes("benzene") || queryLower.includes("chemistry") || queryLower.includes("bond")) {
-      reply = "Delocalized organic molecular orbitals satisfy Huckel criteria. Let's calculate the resonance energy bounds:\n\n$$\\text{Resonance Energy} = E_{\\text{localized}} - E_{\\text{delocalized}} \\approx 152\\text{ kJ/mol}$$";
-    } else if (queryLower.includes("limit") || queryLower.includes("calculus") || queryLower.includes("math")) {
-      reply = "Using L'Hôpital's Rule for indeterminate forms $0/0$:\n\n$$\\lim_{x \\to c} \\frac{f(x)}{g(x)} = \\lim_{x \\to c} \\frac{f'(x)}{g'(x)}$$\n\nDifferentiating the numerators and denominators allows direct evaluation.";
-    }
-
-    setChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
-    setIsTyping(false);
-  };
-
-  if (loading) {
+  // Loading screen
+  if (loading || !studyData) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-xs text-orange-400 font-mono gap-3">
-        <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        Syncing Student Credentials...
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full border-2 border-cyan-500/30 border-t-cyan-400 animate-spin" />
+          <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-violet-500/20 border-b-violet-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+        </div>
+        <span className="text-xs text-cyan-400/70 font-mono tracking-widest uppercase">
+          Initializing Study Station...
+        </span>
+      </div>
+    );
+  }
+
+  // Subscribe paywall — only allow subscribed users to access the study dashboard
+  if (user && (user.tier === "free" || !user.tier)) {
+    return (
+      <div className="relative min-h-screen bg-black text-white flex flex-col justify-center items-center overflow-hidden p-6 select-none">
+        {/* Background elements */}
+        <SpaceBackground />
+        <div className="absolute inset-0 bg-black/60 z-[1] pointer-events-none" />
+
+        {/* Paywall Card */}
+        <div className="relative z-10 glass-panel border border-white/10 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
+          {/* Locked Icon */}
+          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-violet-500/10 to-sky-500/10 border border-violet-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(139,92,246,0.15)] animate-pulse">
+            <ShieldCheck className="w-8 h-8 text-violet-400" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-lg md:text-xl font-display font-extrabold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
+              Command Station Locked
+            </h2>
+            <p className="text-[10px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
+              Access to the advanced JEE/NEET study dashboard is reserved exclusively for subscribed members.
+            </p>
+          </div>
+
+          {/* Current Tier Info Card */}
+          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5 text-left font-mono">
+            <div className="flex justify-between items-center text-[9px] text-zinc-500">
+              <span>STUDENT PROFILE</span>
+              <span>LOCKED</span>
+            </div>
+            <div className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider">
+              {user.email}
+            </div>
+            <div className="flex justify-between items-center text-[9px] pt-1 border-t border-white/5">
+              <span className="text-zinc-500">SUBSCRIPTION LEVEL:</span>
+              <span className="text-red-400 font-bold uppercase">Free Tier</span>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="space-y-3 pt-2">
+            <a
+              href="/#pricing"
+              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-600 border border-orange-500/20 text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:from-orange-500 hover:to-pink-700 transition-all cursor-pointer text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
+            >
+              Upgrade Tier Now
+            </a>
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-black text-white overflow-hidden select-none pb-12">
-      
-      {/* Dynamic blackhole starfield background */}
+    <div className="relative min-h-screen bg-black text-white overflow-hidden select-none">
+      {/* Black hole background */}
       <SpaceBackground />
-      <div className="absolute inset-0 bg-black/60 z-1 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/50 z-[1] pointer-events-none" />
 
-      {/* Main Header / Topbar */}
-      <header className="relative z-10 py-5 px-6 md:px-12 border-b border-white/5 bg-black/40 backdrop-blur-md flex justify-between items-center max-w-7xl mx-auto rounded-b-2xl">
+      {/* Top Navigation Bar */}
+      <header className="relative z-10 py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center">
+        {/* Left: Logo */}
         <a href="/" className="flex items-center gap-2 group">
           <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
-            <span className="font-display font-bold text-white text-xs">PV</span>
+            <span className="font-display font-bold text-white text-[10px]">PV</span>
           </div>
           <span className="font-display font-extrabold text-sm tracking-wider">
             PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
           </span>
         </a>
 
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-zinc-400 flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1.5 rounded-full">
-            <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
+        {/* Center: Tab Switcher */}
+        <div className="hidden md:flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+          <button
+            onClick={() => setActiveTab("command")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              activeTab === "command"
+                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]"
+                : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+            }`}
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            Command Center
+          </button>
+          <button
+            onClick={() => setActiveTab("library")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              activeTab === "library"
+                ? "bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_12px_rgba(56,189,248,0.08)]"
+                : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            Library
+          </button>
+          <button
+            onClick={() => setActiveTab("ai")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              activeTab === "ai"
+                ? "bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-[0_0_12px_rgba(139,92,246,0.08)]"
+                : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+            }`}
+          >
+            <span className="text-sm">🤖</span>
+            AI Solver
+          </button>
+          <button
+            onClick={() => setActiveTab("strategies")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+              activeTab === "strategies"
+                ? "bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_12px_rgba(249,115,22,0.08)]"
+                : "text-zinc-500 hover:text-zinc-300 border border-transparent"
+            }`}
+          >
+            <span className="text-sm">📺</span>
+            Strategies
+          </button>
+        </div>
+
+        {/* Right: User + Logout */}
+        <div className="flex items-center gap-3">
+          <span className="hidden md:flex text-[10px] text-zinc-400 items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] px-3 py-1.5 rounded-full">
+            <ShieldCheck className="w-3 h-3 text-sky-400" />
             {user.email}
-            <span className={`ml-2 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-              user.tier === "titan" 
-                ? "bg-violet-500/20 text-violet-400 border border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.15)]" 
-                : user.tier === "aspirant"
-                ? "bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.15)]"
-                : "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30"
-            }`}>
+            <span
+              className={`ml-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
+                user.tier === "titan"
+                  ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
+                  : user.tier === "aspirant"
+                  ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                  : "bg-zinc-500/20 text-zinc-400 border border-zinc-500/30"
+              }`}
+            >
               {user.tier}
             </span>
+            {user.tier && user.tier !== "free" && (
+              <button
+                onClick={() => {
+                  upgradeUserTier(user.uid, "free");
+                  window.location.reload();
+                }}
+                className="text-[8px] font-mono text-red-400 hover:text-red-300 underline cursor-pointer ml-1 font-bold uppercase tracking-wider transition-colors"
+                title="Reset subscription to Free Tier for paywall testing"
+              >
+                Reset
+              </button>
+            )}
           </span>
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 px-4 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-medium uppercase tracking-wider"
+            className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-white border border-white/[0.06] px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out
+            <LogOut className="w-3 h-3" />
+            <span className="hidden sm:inline">Sign Out</span>
           </button>
         </div>
       </header>
 
-      {/* Main Grid Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
-        {/* Left Hand: Student Progress and Syllabus Checklist */}
-        <div className="lg:col-span-7 space-y-6">
-          
-          {/* Welcome Card */}
-          <div className="glass-panel border border-white/10 rounded-2xl p-6 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
-            <h2 className="font-display font-extrabold text-2xl text-white flex items-center gap-2">
-              Welcome, {user.displayName} <Sparkles className="w-5 h-5 text-orange-400 animate-pulse" />
-            </h2>
-            <p className="text-xs text-zinc-400 mt-2 max-w-lg leading-relaxed">
-              Your academic cockpit is synchronized. Track your syllabus metrics below, or query our premium artificial doubt-solving module.
-            </p>
-          </div>
+      {/* Mobile Tab Switcher */}
+      <div className="md:hidden relative z-10 flex flex-wrap gap-1 mx-4 mt-3 bg-white/[0.03] p-1 rounded-xl border border-white/5">
+        <button
+          onClick={() => setActiveTab("command")}
+          className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === "command"
+              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+              : "text-zinc-500 border border-transparent"
+          }`}
+        >
+          Command Center
+        </button>
+        <button
+          onClick={() => setActiveTab("library")}
+          className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === "library"
+              ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+              : "text-zinc-500 border border-transparent"
+          }`}
+        >
+          Library
+        </button>
+        <button
+          onClick={() => setActiveTab("ai")}
+          className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === "ai"
+              ? "bg-violet-500/10 text-violet-400 border border-violet-500/20"
+              : "text-zinc-500 border border-transparent"
+          }`}
+        >
+          AI Solver
+        </button>
+        <button
+          onClick={() => setActiveTab("strategies")}
+          className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
+            activeTab === "strategies"
+              ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
+              : "text-zinc-500 border border-transparent"
+          }`}
+        >
+          Strategies
+        </button>
+      </div>
 
-          {/* Academic Syllabus Panel */}
-          <div className="glass-panel border border-white/10 rounded-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center pb-3 border-b border-white/5">
-              <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-orange-400" />
-                STUDENT SYLLABUS CHECKLIST
-              </span>
-              <span className="text-[10px] font-mono text-sky-400 font-bold bg-sky-500/10 px-2 py-0.5 rounded-full">
-                Syllabus: 82% complete
-              </span>
-            </div>
-
-            {/* Subject Tabs */}
-            <div className="flex gap-2 bg-black/40 p-1 border border-white/5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider">
-              {["physics", "chemistry", "maths"].map((sub) => (
-                <button
-                  key={sub}
-                  onClick={() => setActiveSubj(sub)}
-                  className={`flex-1 py-2 rounded-lg text-center transition-all cursor-pointer ${
-                    activeSubj === sub 
-                      ? "bg-gradient-to-r from-orange-500 to-sky-400 text-white shadow-md shadow-orange-500/10" 
-                      : "text-zinc-500 hover:text-white"
-                  }`}
-                >
-                  {sub}
-                </button>
-              ))}
-            </div>
-
-            {/* Syllabus Chapters Checklist */}
-            <div className="space-y-3 pt-2">
-              {activeSubj === "physics" && (
-                <>
-                  {[
-                    { title: "Relativistic Dynamics & Singularity Bounds", comp: "95%" },
-                    { title: "Electrostatics, Charge Distributions & Lattices", comp: "74%" },
-                    { title: "Quantum Mechanics & Wave Function Collapses", comp: "55%" },
-                  ].map((ch, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-white/3 border border-white/5 rounded-xl">
-                      <span className="text-xs text-zinc-300 flex items-center gap-2 font-medium">
-                        <CheckCircle className="w-4 h-4 text-orange-400" />
-                        {ch.title}
-                      </span>
-                      <span className="text-xs text-zinc-500 font-mono font-bold">{ch.comp}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-              {activeSubj === "chemistry" && (
-                <>
-                  {[
-                    { title: "Delocalized Aromatic Resonances", comp: "88%" },
-                    { title: "Entropy Formulas & Thermodynamics Calculations", comp: "62%" },
-                    { title: "Quantum Kinetics & Particle Collision Mechanics", comp: "45%" },
-                  ].map((ch, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-white/3 border border-white/5 rounded-xl">
-                      <span className="text-xs text-zinc-300 flex items-center gap-2 font-medium">
-                        <CheckCircle className="w-4 h-4 text-sky-400" />
-                        {ch.title}
-                      </span>
-                      <span className="text-xs text-zinc-500 font-mono font-bold">{ch.comp}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-              {activeSubj === "maths" && (
-                <>
-                  {[
-                    { title: "Limits calculus & Infinite Integrations", comp: "92%" },
-                    { title: "Vector Spaces & Matrix Dimension Transformations", comp: "65%" },
-                    { title: "Complex Number Rotations & Waves Formulations", comp: "30%" },
-                  ].map((ch, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-white/3 border border-white/5 rounded-xl">
-                      <span className="text-xs text-zinc-300 flex items-center gap-2 font-medium">
-                        <CheckCircle className="w-4 h-4 text-violet-400" />
-                        {ch.title}
-                      </span>
-                      <span className="text-xs text-zinc-500 font-mono font-bold">{ch.comp}</span>
-                    </div>
-                  ))}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Quick Notes resources for active student clearance */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="glass-panel border border-white/10 rounded-2xl p-5 flex flex-col justify-between min-h-[140px] group hover:scale-[1.02] transition-all">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">PREMIUM STUDY MODULE</span>
-              <h4 className="font-display font-extrabold text-sm text-white mt-2">Chapter-Wise Formula Sheets</h4>
-              <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">Exact summary formulas designed for rapid JEE Mains revisions.</p>
-              <a href="#" className="text-[10px] font-bold text-sky-400 uppercase font-mono tracking-wider mt-3 block">ACCESS SHEETS →</a>
-            </div>
-            <div className="glass-panel border border-white/10 rounded-2xl p-5 flex flex-col justify-between min-h-[140px] group hover:scale-[1.02] transition-all">
-              <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider">COMMAND TEST PORTAL</span>
-              <h4 className="font-display font-extrabold text-sm text-white mt-2">Chapter Telemetry Tests</h4>
-              <p className="text-[11px] text-zinc-400 mt-1 leading-relaxed">Practice chapter-specific tests to check your metric rating.</p>
-              <a href="#" className="text-[10px] font-bold text-orange-400 uppercase font-mono tracking-wider mt-3 block">START TEST →</a>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right Hand: 24/7 AI Doubt Solver */}
-        <div className="lg:col-span-5 relative">
-          <div className="glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col h-[520px]">
-            
-            {/* Header */}
-            <div className="bg-white/3 border-b border-white/5 px-5 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-orange-400" />
-                <span className="text-[10px] font-mono tracking-widest text-zinc-300 uppercase">
-                  DOUBT-SOLVER TELEMETRY CONSOLE
-                </span>
+      {/* Main Content */}
+      <main className="relative z-10 pb-12">
+        {/* AI Solver + Study Strategies View */}
+        {activeTab === "ai" && (
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 mt-6 pb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* Left Column: AI Doubt Solver */}
+              <div className="lg:col-span-2">
+                <AIDoubtSolver />
               </div>
-              <span className="text-[9px] font-mono text-zinc-500 uppercase">
-                STABLE
-              </span>
-            </div>
+              
+              {/* Right Column: Study Strategies YouTube Playlist Player */}
+              <div className="glass-panel border border-white/10 rounded-3xl p-5 space-y-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                {/* Heading */}
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📺</span>
+                    <h3 className="text-xs uppercase font-mono font-extrabold tracking-wider text-white">
+                      Study Strategies
+                    </h3>
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-mono">
+                    Premium study techniques and IIT JEE/NEET blueprints by elite educators.
+                  </p>
+                </div>
 
-            {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left">
-              {chatMessages.map((msg, i) => (
-                <div 
-                  key={i} 
-                  className={`flex items-start gap-2.5 ${
-                    msg.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  {msg.role === "assistant" && (
-                    <div className="w-6 h-6 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0 text-[9px] font-bold text-orange-400 font-mono">
-                      AI
+                {/* Video Player */}
+                <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-inner shadow-black">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${activeVideoId}`}
+                    title="Study Strategy Video Player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full"
+                  />
+                </div>
+
+                {/* Video Details */}
+                {(() => {
+                  const currentVideo = STUDY_STRATEGIES_VIDEOS.find(v => v.id === activeVideoId);
+                  return currentVideo ? (
+                    <div className="space-y-1.5 font-mono">
+                      <h4 className="text-[10px] uppercase font-bold text-white leading-normal truncate">
+                        {currentVideo.title}
+                      </h4>
+                      <p className="text-[9px] text-zinc-400 leading-relaxed">
+                        {currentVideo.desc}
+                      </p>
                     </div>
-                  )}
-                  <div 
-                    className={`rounded-xl p-3.5 max-w-[85%] text-xs font-medium leading-relaxed whitespace-pre-line ${
-                      msg.role === "user"
-                        ? "bg-orange-600/20 border border-orange-500/30 text-white animate-in fade-in"
-                        : "bg-white/3 border border-white/5 text-zinc-300"
-                    }`}
-                  >
-                    {msg.text}
+                  ) : null;
+                })()}
+
+                {/* Playlist Selection */}
+                <div className="space-y-2 border-t border-white/5 pt-4">
+                  <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-zinc-500 block">
+                    Telemetry Playlist
+                  </span>
+                  
+                  <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
+                    {STUDY_STRATEGIES_VIDEOS.map((video) => {
+                      const isCurrent = video.id === activeVideoId;
+                      return (
+                        <button
+                          key={video.id}
+                          onClick={() => setActiveVideoId(video.id)}
+                          className={`w-full text-left p-2.5 rounded-xl border font-mono transition-all flex gap-3 cursor-pointer ${
+                            isCurrent
+                              ? "bg-violet-500/10 border-violet-500/20 text-violet-300"
+                              : "bg-white/[0.01] border-white/5 text-zinc-500 hover:text-zinc-300 hover:border-white/10 hover:bg-white/[0.02]"
+                          }`}
+                        >
+                          {/* Mini Thumbnail */}
+                          <div className="w-16 h-10 bg-black rounded overflow-hidden flex-shrink-0 relative border border-white/5">
+                            <img
+                              src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                              alt=""
+                              className="w-full h-full object-cover filter brightness-75"
+                            />
+                            {isCurrent && (
+                              <div className="absolute inset-0 bg-violet-500/10 flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-violet-400 animate-ping" />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Title Metadata */}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-[9px] font-bold uppercase tracking-wide truncate">
+                              {video.title}
+                            </p>
+                            <p className="text-[8px] text-zinc-500 line-clamp-1">
+                              {video.desc}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
-              ))}
-              {isTyping && (
-                <div className="flex items-start gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0 text-[9px] font-bold text-orange-400 font-mono">
-                    AI
-                  </div>
-                  <div className="rounded-xl p-3.5 bg-white/3 border border-white/5 text-zinc-500 text-xs font-mono animate-pulse">
-                    Computing LaTeX matrix...
-                  </div>
-                </div>
-              )}
+
+              </div>
             </div>
-
-            {/* Input Form */}
-            <form onSubmit={handleSolveDoubt} className="border-t border-white/5 bg-black/45 p-3 flex gap-2">
-              <input
-                type="text"
-                value={doubtQuery}
-                onChange={(e) => setDoubtQuery(e.target.value)}
-                placeholder="Ask about Kepler's gravity laws, benzene bonds, limits calculus..."
-                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-orange-400 focus:ring-0 font-medium"
-              />
-              <button
-                type="submit"
-                className="w-10 h-10 rounded-xl bg-gradient-to-r from-orange-400 to-sky-400 flex items-center justify-center text-white cursor-pointer hover:shadow-orange-500/25 hover:scale-102 transition-all shrink-0"
-              >
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-
           </div>
-        </div>
+        )}
 
+        {/* Study Strategies Dedicated Cinematic View */}
+        {activeTab === "strategies" && (
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 mt-6 pb-12 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+              {/* Left Column: Widescreen Theater Video Player */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="glass-panel border border-white/10 rounded-3xl p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                  {/* Active Video Header Info */}
+                  {(() => {
+                    const currentVideo = STUDY_STRATEGIES_VIDEOS.find(v => v.id === activeVideoId) || STUDY_STRATEGIES_VIDEOS[0];
+                    return (
+                      <div className="space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/5">
+                          <div className="space-y-1">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-[9px] font-mono uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-ping" />
+                              Active Masterclass
+                            </span>
+                            <h2 className="text-lg md:text-xl font-display font-extrabold uppercase text-white tracking-wide mt-1">
+                              {currentVideo.title}
+                            </h2>
+                          </div>
+                          <div className="text-[10px] text-zinc-500 font-mono flex items-center gap-2">
+                            <span>Video ID:</span>
+                            <span className="px-2 py-1 rounded bg-white/5 border border-white/10 text-zinc-300 font-bold select-all">
+                              {currentVideo.id}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Large Cinematic Player */}
+                        <div className="relative aspect-video rounded-2xl overflow-hidden border border-white/10 bg-zinc-950 shadow-[0_20px_50px_rgba(0,0,0,0.8)] group">
+                          <iframe
+                            src={`https://www.youtube.com/embed/${currentVideo.id}`}
+                            title={currentVideo.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            className="absolute inset-0 w-full h-full"
+                          />
+                        </div>
+
+                        {/* Description Panel */}
+                        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                          <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-zinc-500 block">
+                            Blueprints & Telemetry
+                          </span>
+                          <p className="text-xs text-zinc-300 font-mono leading-relaxed">
+                            {currentVideo.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Right Column: Premium Interactive Playlist selection */}
+              <div className="glass-panel border border-white/10 rounded-3xl p-6 space-y-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">📺</span>
+                    <h3 className="text-xs uppercase font-mono font-extrabold tracking-wider text-white">
+                      Study Strategies Playlist
+                    </h3>
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-mono">
+                    Select a seminar block to adjust your telemetry stream.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 max-h-[580px] overflow-y-auto pr-1 scrollbar-thin">
+                  {STUDY_STRATEGIES_VIDEOS.map((video) => {
+                    const isCurrent = video.id === activeVideoId;
+                    return (
+                      <button
+                        key={video.id}
+                        onClick={() => setActiveVideoId(video.id)}
+                        className={`w-full text-left p-3 rounded-2xl border font-mono transition-all flex gap-3 cursor-pointer ${
+                          isCurrent
+                            ? "bg-orange-500/10 border-orange-500/25 text-orange-300 shadow-[0_0_15px_rgba(249,115,22,0.05)]"
+                            : "bg-white/[0.01] border-white/5 text-zinc-500 hover:text-zinc-300 hover:border-white/10 hover:bg-white/[0.02]"
+                        }`}
+                      >
+                        {/* Mini Thumbnail with image check */}
+                        <div className="w-20 h-12 bg-black rounded-lg overflow-hidden flex-shrink-0 relative border border-white/5">
+                          <img
+                            src={`https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
+                            alt=""
+                            className="w-full h-full object-cover filter brightness-75 group-hover:brightness-90 transition-all"
+                          />
+                          {isCurrent && (
+                            <div className="absolute inset-0 bg-orange-500/10 flex items-center justify-center">
+                              <span className="text-xs animate-bounce">📺</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Title Metadata */}
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex justify-between items-center gap-2">
+                            <p className="text-[10px] font-bold uppercase tracking-wide truncate">
+                              {video.title}
+                            </p>
+                            {isCurrent && (
+                              <span className="text-[7px] bg-orange-500/20 text-orange-400 border border-orange-500/30 px-1 py-0.2 rounded font-bold uppercase tracking-wider shrink-0 animate-pulse">
+                                Live
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[8px] text-zinc-500 line-clamp-2 leading-relaxed">
+                            {video.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Library View — Google Drive Resources */}
+        {activeTab === "library" && (
+          <div className="max-w-[1440px] mx-auto px-4 md:px-8 mt-6 pb-12">
+            <DriveResourcesPanel />
+          </div>
+        )}
+
+        {/* Command Center View */}
+        {activeTab === "command" && (
+          <div className="max-w-[1440px] mx-auto px-4 md:px-6 lg:px-8 mt-6">
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* LEFT SIDEBAR — Gamification */}
+              <div className="hidden lg:block w-56 flex-shrink-0">
+                <div className="sticky top-6 space-y-4">
+                  <Sidebar studyData={studyData} user={user} />
+                  <AmbientControls studyData={studyData} onUpdate={handleStudyUpdate} />
+                </div>
+              </div>
+
+              {/* CENTER — Main Dashboard Modules */}
+              <div className="flex-1 min-w-0 space-y-6">
+                {/* Welcome Cockpit Banner & SEO Primary Title */}
+                <div className="glass-panel border border-white/5 rounded-3xl p-6 relative overflow-hidden bg-gradient-to-r from-white/[0.01] to-white/[0.03]">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />
+                  <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-mono tracking-widest text-cyan-400 uppercase font-bold block">
+                        SYSTEM CLEARANCE: COMMANDER LEVEL
+                      </span>
+                      <h1 className="text-xl md:text-2xl font-display font-extrabold text-white tracking-wide uppercase">
+                        Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">{user.displayName || user.email.split("@")[0]}</span>
+                      </h1>
+                      <p className="text-[10px] text-zinc-500 font-mono">
+                        Your orbital tracking cockpit is fully synced with active study telemetry.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 px-3.5 py-2 rounded-2xl font-mono text-[9px] text-zinc-400">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                      <span>COSMIC TELEMETRY ACTIVE</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Top Row: Pomodoro + Analytics */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <PomodoroTimer
+                    studyData={studyData}
+                    onUpdate={handleStudyUpdate}
+                  />
+                  <StudyAnalytics studyData={studyData} />
+                </div>
+
+                {/* Mobile-only Sidebar Stats */}
+                <div className="lg:hidden">
+                  <Sidebar studyData={studyData} user={user} />
+                </div>
+
+                {/* Bottom Row: Subject Tracker + Task Manager */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <SubjectTracker
+                    studyData={studyData}
+                    onUpdate={handleStudyUpdate}
+                  />
+                  <TaskManager
+                    studyData={studyData}
+                    onUpdate={handleStudyUpdate}
+                  />
+                </div>
+
+                {/* Mobile-only Ambient Controls */}
+                <div className="lg:hidden">
+                  <AmbientControls studyData={studyData} onUpdate={handleStudyUpdate} />
+                </div>
+              </div>
+
+              {/* RIGHT PANEL — AI Quick Access (desktop only) */}
+              <div className="hidden xl:block w-96 flex-shrink-0">
+                <div className="sticky top-6">
+                  <AIDoubtSolver />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
-
     </div>
   );
 }

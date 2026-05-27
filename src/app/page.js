@@ -21,7 +21,12 @@ import {
   Zap,
   TrendingUp,
   Cpu,
-  Bookmark
+  Bookmark,
+  Timer,
+  ListTodo,
+  BarChart3,
+  Trophy,
+  Flame
 } from "lucide-react";
 
 // Components
@@ -30,6 +35,7 @@ import SpaceBackground from "@/components/SpaceBackground";
 import AuthModal from "@/components/AuthModal";
 import { auth, getUserTier, upgradeUserTier } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import AIDoubtSolver from "@/components/AIDoubtSolver";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -43,12 +49,7 @@ export default function Home() {
   // Mouse coordinates state for glow
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Interactive AI Doubt Solver state
-  const [doubtQuery, setDoubtQuery] = useState("");
-  const [chatMessages, setChatMessages] = useState([
-    { role: "assistant", text: "Hello! I am your PhysicsVault AI Doubt Solver. Ask me any conceptual question or paste a formula from Physics, Chemistry, or Maths!" }
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
+  // Live AI Doubt Solver is handled natively inside the AIDoubtSolver component
 
   // Payments and Receipt details states
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'failure' | null
@@ -115,32 +116,7 @@ export default function Home() {
     setAuthOpen(true);
   };
 
-  // Mock AI doubt solver logic
-  const handleSolveDoubt = async (e) => {
-    e.preventDefault();
-    if (!doubtQuery.trim()) return;
-
-    const userQ = doubtQuery;
-    setChatMessages(prev => [...prev, { role: "user", text: userQ }]);
-    setDoubtQuery("");
-    setIsTyping(true);
-
-    await new Promise(resolve => setTimeout(resolve, 1400));
-
-    let reply = "Here is the step-by-step mathematical deduction:\n\nUsing the Schrödinger equation:\n\n$$-\\frac{\\hbar^2}{2m} \\nabla^2 \\Psi + V\\Psi = E\\Psi$$\n\nIntegrating over bounded energy levels confirms orbital stability.";
-    
-    const queryLower = userQ.toLowerCase();
-    if (queryLower.includes("gravity") || queryLower.includes("kepler") || queryLower.includes("orbit")) {
-      reply = "Kepler's Third Law states that the square of the orbital period $T^2$ is proportional to the cube of the semi-major axis $a^3$:\n\n$$T^2 = \\left( \\frac{4\\pi^2}{G(M + m)} \\right) a^3$$\n\nFor satellites orbiting massive centers, we approximate gravity balances as:\n\n$$\\frac{v^2}{r} = \\frac{GM}{r^2} \\implies v = \\sqrt{\\frac{GM}{r}}$$";
-    } else if (queryLower.includes("benzene") || queryLower.includes("chemistry") || queryLower.includes("bond")) {
-      reply = "Delocalized organic molecular orbitals satisfy Huckel criteria. Let's calculate the resonance energy bounds:\n\n$$\\text{Resonance Energy} = E_{\\text{localized}} - E_{\\text{delocalized}} \\approx 152\\text{ kJ/mol}$$";
-    } else if (queryLower.includes("limit") || queryLower.includes("calculus") || queryLower.includes("math")) {
-      reply = "Using L'Hôpital's Rule for indeterminate forms $0/0$:\n\n$$\\lim_{x \\to c} \\frac{f(x)}{g(x)} = \\lim_{x \\to c} \\frac{f'(x)}{g'(x)}$$\n\nDifferentiating the numerators and denominators allows direct evaluation.";
-    }
-
-    setChatMessages(prev => [...prev, { role: "assistant", text: reply }]);
-    setIsTyping(false);
-  };
+  // Live AI Doubt Solver triggers mapped dynamically
 
   // Dynamically load Razorpay's checkout script
   const loadRazorpayScript = () => {
@@ -592,6 +568,125 @@ export default function Home() {
 
               </div>
 
+              {/* Study Station Features — Row 2 */}
+              <div className="mt-8 space-y-4">
+                <div className="text-center mb-6">
+                  <span className="text-[9px] font-mono tracking-[0.2em] text-cyan-400 uppercase font-bold bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/15">
+                    🚀 NEW — STUDY COMMAND CENTER
+                  </span>
+                </div>
+
+                {/* Wide 2-col feature cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                  {/* Pomodoro Focus Timer */}
+                  <a href="/dashboard" className="animated-border rounded-2xl p-8 flex gap-6 items-start relative group overflow-hidden cursor-pointer min-h-[200px]">
+                    <div className="absolute -right-12 -bottom-12 w-36 h-36 bg-cyan-500/8 rounded-full blur-3xl group-hover:bg-cyan-500/15 transition-colors" />
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(0,217,255,0.12)] group-hover:shadow-[0_0_25px_rgba(0,217,255,0.2)] transition-shadow">
+                        <Timer className="w-6 h-6 text-cyan-400" />
+                      </div>
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <h4 className="font-display font-bold text-lg text-white">
+                        Pomodoro Focus Timer
+                      </h4>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                        Circular countdown timer with Focus, Break, and Long Break modes. Adjustable durations, auto-switching, and session tracking to maximize deep study flow.
+                      </p>
+                      <div className="flex items-center gap-3 pt-2">
+                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">25m Focus</span>
+                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">5m Break</span>
+                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">Auto-Cycle</span>
+                      </div>
+                    </div>
+                  </a>
+
+                  {/* Subject Progress Tracker */}
+                  <a href="/dashboard" className="animated-border rounded-2xl p-8 flex gap-6 items-start relative group overflow-hidden cursor-pointer min-h-[200px]">
+                    <div className="absolute -right-12 -bottom-12 w-36 h-36 bg-orange-500/8 rounded-full blur-3xl group-hover:bg-orange-500/15 transition-colors" />
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.12)] group-hover:shadow-[0_0_25px_rgba(249,115,22,0.2)] transition-shadow">
+                        <Bookmark className="w-6 h-6 text-orange-400" />
+                      </div>
+                    </div>
+                    <div className="space-y-2 flex-1">
+                      <h4 className="font-display font-bold text-lg text-white">
+                        Subject Progress Tracker
+                      </h4>
+                      <p className="text-xs text-zinc-400 leading-relaxed font-medium">
+                        Track Physics, Chemistry, and Maths chapter-by-chapter. Expandable checklists with real-time progress bars and custom subject support.
+                      </p>
+                      <div className="flex items-center gap-3 pt-2">
+                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">54 Chapters</span>
+                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">3 Subjects</span>
+                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">JEE/NEET</span>
+                      </div>
+                    </div>
+                  </a>
+
+                </div>
+
+                {/* 3-col feature cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                  {/* Smart Task Manager */}
+                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.12)]">
+                      <ListTodo className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <div className="space-y-2 mt-5">
+                      <h4 className="font-display font-bold text-base text-white">Smart Task Manager</h4>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
+                        Prioritize study tasks with High/Med/Low urgency, tag by subject, and filter by status. Earn XP for every task you crush.
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-emerald-400 font-semibold group-hover:text-white transition-colors">
+                      <span>Open Tasks</span>
+                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                    </div>
+                  </a>
+
+                  {/* Study Analytics */}
+                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.12)]">
+                      <BarChart3 className="w-5 h-5 text-blue-400" />
+                    </div>
+                    <div className="space-y-2 mt-5">
+                      <h4 className="font-display font-bold text-base text-white">Study Analytics</h4>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
+                        Weekly focus heatmap, session counts, total study hours, and subject distribution — all in one glance.
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-blue-400 font-semibold group-hover:text-white transition-colors">
+                      <span>View Analytics</span>
+                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                    </div>
+                  </a>
+
+                  {/* XP Gamification */}
+                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
+                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition-colors" />
+                    <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.12)]">
+                      <Trophy className="w-5 h-5 text-yellow-400" />
+                    </div>
+                    <div className="space-y-2 mt-5">
+                      <h4 className="font-display font-bold text-base text-white">XP & Ranks System</h4>
+                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
+                        Earn XP for every session and task. Level up from Cadet to Singularity. Track streaks, focus grades, and daily goals.
+                      </p>
+                    </div>
+                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-yellow-400 font-semibold group-hover:text-white transition-colors">
+                      <span>Start Earning</span>
+                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
+                    </div>
+                  </a>
+
+                </div>
+              </div>
+
             </section>
 
             {/* 4. HOLOGRAPHIC SYLLABUS & TEXTBOOKS CONSOLE (REPLACING THE TEXTBOOKS PNG) */}
@@ -759,112 +854,27 @@ export default function Home() {
               </div>
             </section>
 
-            {/* 5. LIVE AI DOUBT SOLVING CONSOLE */}
-            <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[140px] pointer-events-none" />
+            {/* 5. LIVE AI DOUBT SOLVING CONSOLE (POWERED BY GOOGLE GEMINI AND TYPESET IN RIGOROUS LATEX KATEX) */}
+            <section id="doubt-solver" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden text-center">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-[140px] pointer-events-none" />
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                
-                <div className="lg:col-span-6 space-y-6 text-left relative z-20">
-                  <span className="text-[10px] font-mono tracking-[0.25em] text-orange-400 uppercase font-bold">
-                    LIVE AI SUPPORT
+              <div className="max-w-3xl mx-auto mb-12 space-y-3 relative z-10">
+                <span className="text-[10px] font-mono tracking-[0.25em] text-orange-400 uppercase font-bold">
+                  LIVE AI SUPPORT
+                </span>
+                <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
+                  Solve Your Doubts <br />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-sky-400 text-glow font-extrabold">
+                    In Ten Seconds Flat
                   </span>
-                  <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
-                    Solve Your Doubts <br />
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-sky-400 text-glow font-extrabold">
-                      In Ten Seconds Flat
-                    </span>
-                  </h2>
-                  <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                    Stuck on a tricky JEE Advanced problem? Type the formula or ask a general query. Our AI tutor analyzes steps instantaneously, returning crystal-clear LaTeX derivations.
-                  </p>
-                  
-                  <div className="space-y-3.5 pt-4">
-                    {[
-                      "Fully supports Physics, Chemistry, and Maths equations.",
-                      "Translates chemical bonds, mechanics, and vector lattices.",
-                      "LaTeX formatted mathematical notation rendering.",
-                    ].map((point, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div className="w-5 h-5 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20">
-                          <Check className="w-3.5 h-3.5 text-orange-400" />
-                        </div>
-                        <span className="text-xs text-zinc-300 font-medium">{point}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                </h2>
+                <p className="text-sm text-zinc-400 leading-relaxed font-medium">
+                  Stuck on a tricky JEE Advanced problem? Type the formula or ask a general query. Our Gemini-powered AI tutor analyzes steps instantaneously, returning crystal-clear LaTeX derivations.
+                </p>
+              </div>
 
-                <div className="lg:col-span-6 relative z-20">
-                  <div className="glass-panel rounded-2xl border border-white/10 shadow-2xl overflow-hidden flex flex-col h-[380px]">
-                    
-                    <div className="bg-white/3 border-b border-white/5 px-5 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse" />
-                        <span className="text-[10px] font-mono tracking-widest text-zinc-300 uppercase">
-                          DOUBT-SOLVER TELEMETRY CONSOLE
-                        </span>
-                      </div>
-                      <span className="text-[9px] font-mono text-zinc-500 uppercase">
-                        AI CONSOLE STABLE
-                      </span>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto p-5 space-y-4 text-left">
-                      {chatMessages.map((msg, i) => (
-                        <div 
-                          key={i} 
-                          className={`flex items-start gap-2.5 ${
-                            msg.role === "user" ? "justify-end" : "justify-start"
-                          }`}
-                        >
-                          {msg.role === "assistant" && (
-                            <div className="w-6 h-6 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20 text-[9px] font-bold text-orange-400 font-mono">
-                              AI
-                            </div>
-                          )}
-                          <div 
-                            className={`rounded-xl p-3.5 max-w-[80%] text-xs font-medium leading-relaxed whitespace-pre-line ${
-                              msg.role === "user"
-                                ? "bg-orange-600/20 border border-orange-500/30 text-white animate-in fade-in"
-                                : "bg-white/3 border border-white/5 text-zinc-300"
-                            }`}
-                          >
-                            {msg.text}
-                          </div>
-                        </div>
-                      ))}
-                      {isTyping && (
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-6 h-6 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0 border border-orange-500/20 text-[9px] font-bold text-orange-400 font-mono">
-                            AI
-                          </div>
-                          <div className="rounded-xl p-3.5 bg-white/3 border border-white/5 text-zinc-500 text-xs font-mono animate-pulse">
-                            Computing LaTeX matrix...
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <form onSubmit={handleSolveDoubt} className="border-t border-white/5 bg-black/40 p-3 flex gap-2">
-                      <input
-                        type="text"
-                        value={doubtQuery}
-                        onChange={(e) => setDoubtQuery(e.target.value)}
-                        placeholder="Solve Kepler's third gravity law, or limits calculus..."
-                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-orange-400 focus:ring-0 font-medium"
-                      />
-                      <button
-                        type="submit"
-                        className="w-10 h-10 rounded-xl bg-gradient-to-r from-orange-400 to-sky-400 flex items-center justify-center text-white cursor-pointer hover:shadow-orange-500/20 hover:scale-102 transition-all shrink-0"
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
-                    </form>
-
-                  </div>
-                </div>
-
+              <div className="relative z-20">
+                <AIDoubtSolver />
               </div>
             </section>
 
@@ -1112,11 +1122,11 @@ export default function Home() {
 
                 <div className="space-y-3">
                   <h5 className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
-                    SECTOR COMS
+                    CONTACT
                   </h5>
                   <ul className="space-y-2 text-xs text-zinc-400 font-sans">
-                    <li><span className="text-zinc-500 font-mono">Academic:</span> cockpit@physicsvault.edu</li>
-                    <li><span className="text-zinc-500 font-mono">Base:</span> Kepler Quadrant, System 12</li>
+                    <li><span className="text-zinc-500 font-mono">Email:</span> <a href="mailto:physicsvault6@gmail.com" className="hover:text-white transition-colors">physicsvault6@gmail.com</a></li>
+                    <li><span className="text-zinc-500 font-mono">Support:</span> <a href="mailto:physicsvault6@gmail.com" className="hover:text-white transition-colors">physicsvault6@gmail.com</a></li>
                   </ul>
                 </div>
               </div>

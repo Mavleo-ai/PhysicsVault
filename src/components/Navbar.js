@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogIn, LogOut, Menu, X, Rocket, Shield } from "lucide-react";
+import { LogIn, LogOut, Menu, X, Rocket, Shield, LayoutDashboard } from "lucide-react";
 
 export default function Navbar({ onAuthClick, user, onLogout }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -24,11 +24,11 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
     <nav
       className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ease-in-out ${
         isScrolled
-          ? "py-3 bg-black/60 backdrop-blur-md border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
-          : "py-6 bg-transparent"
+          ? "py-5 bg-black/60 backdrop-blur-md border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
+          : "py-10 bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-12 flex items-center justify-between">
         {/* Left Side: Logo */}
         <a href="#" className="flex items-center gap-2 group">
           <div className="relative w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30 group-hover:scale-105 transition-transform duration-300">
@@ -41,10 +41,9 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
         </a>
 
         {/* Center: Navigation Links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-14 md:ml-6 lg:ml-8">
           {[
             { label: "Home", href: "#" },
-            { label: "Notes", href: "#notes" },
             { label: "Features", href: "#features" },
             { label: "Pricing", href: "#pricing" },
             { label: "Reviews", href: "#reviews" },
@@ -61,68 +60,86 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
           ))}
         </div>
 
-        {/* Right Side: Auth Buttons */}
-        <div className="hidden md:flex items-center gap-4">
-          {user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-zinc-400 flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
-                <Shield className="w-3.5 h-3.5 text-sky-400" />
-                {user.email}
-                <span className={`ml-2 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  user.tier === "titan" 
-                    ? "bg-violet-500/20 text-violet-400 border border-violet-500/30 shadow-[0_0_10px_rgba(139,92,246,0.15)]" 
-                    : user.tier === "aspirant"
-                    ? "bg-sky-500/20 text-sky-400 border border-sky-500/30 shadow-[0_0_10px_rgba(56,189,248,0.15)]"
-                    : "bg-zinc-500/20 text-zinc-500 border border-zinc-500/30"
-                }`}>
-                  {user.tier || "free"}
+        {/* Right Side: Auth / Dashboard Buttons */}
+        <div className="flex items-center gap-8">
+          <div className="hidden md:flex items-center gap-8 md:ml-6 lg:ml-8">
+            {user ? (
+              <div className="flex items-center gap-3">
+                <a
+                  href="/dashboard"
+                  className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500/15 to-violet-500/15 border border-cyan-500/25 text-cyan-400 hover:from-cyan-500/25 hover:to-violet-500/25 hover:text-cyan-300 transition-all shadow-[0_0_15px_rgba(0,217,255,0.08)] hover:shadow-[0_0_20px_rgba(0,217,255,0.15)] cursor-pointer"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  Dashboard
+                </a>
+                <span className="text-xs text-zinc-400 flex items-center gap-1.5 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                  <Shield className="w-3.5 h-3.5 text-sky-400" />
+                  {user.email}
+                  <span className={`ml-2 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                    user.tier === "titan" 
+                      ? "bg-violet-500/20 text-violet-400 border border-violet-500/30" 
+                      : user.tier === "aspirant"
+                      ? "bg-sky-500/20 text-sky-400 border border-sky-500/30"
+                      : "bg-zinc-500/20 text-zinc-500 border border-zinc-500/30"
+                  }`}>
+                    {user.tier || "free"}
+                  </span>
                 </span>
-              </span>
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 px-4 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-medium uppercase tracking-wider"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Sign Out
-              </button>
-            </div>
-          ) : (
-            <>
-              <button
-                onClick={() => onAuthClick("login")}
-                className="text-xs font-semibold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer px-4 py-2"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => onAuthClick("signup")}
-                className="relative overflow-hidden group px-5 py-2.5 rounded-lg bg-white text-black font-semibold text-xs uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-sky-500/20 transition-all hover:scale-102"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
-                <span className="relative z-10 group-hover:text-white transition-colors flex items-center gap-1">
-                  Sign Up <Rocket className="w-3 h-3" />
-                </span>
-              </button>
-            </>
-          )}
-        </div>
+                <button
+                  onClick={onLogout}
+                  className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white border border-white/10 px-4 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-medium uppercase tracking-wider"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => onAuthClick("login")}
+                  className="text-xs font-semibold uppercase tracking-wider text-zinc-300 hover:text-white transition-colors cursor-pointer px-4 py-2"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={() => onAuthClick("signup")}
+                  className="relative overflow-hidden group px-5 py-2.5 rounded-lg bg-white text-black font-semibold text-xs uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-sky-500/20 transition-all hover:scale-102"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-sky-400 to-violet-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+                  <span className="relative z-10 group-hover:text-white transition-colors flex items-center gap-1">
+                    Sign Up <Rocket className="w-3 h-3" />
+                  </span>
+                </button>
+              </>
+            )}
+          </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="md:hidden text-zinc-400 hover:text-white p-1"
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+          {/* Mobile Menu Toggle */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-zinc-400 hover:text-white p-1"
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-lg border-b border-white/10 py-6 px-6 flex flex-col gap-5 animate-in fade-in slide-in-from-top-5 duration-300">
           <div className="flex flex-col gap-4">
+            {user && (
+              <a
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 text-sm tracking-wider text-cyan-400 hover:text-cyan-300 transition-colors font-bold"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Study Dashboard
+              </a>
+            )}
             {[
               { label: "Home", href: "#" },
-              { label: "Notes", href: "#notes" },
               { label: "Features", href: "#features" },
               { label: "Pricing", href: "#pricing" },
               { label: "Reviews", href: "#reviews" },

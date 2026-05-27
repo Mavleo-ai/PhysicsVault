@@ -151,3 +151,102 @@ body {
   animation: marquee 30s linear infinite;
 }
 
+/* Enhanced glass card for dashboard modules */
+.glass-card {
+  background: rgba(8, 8, 24, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+}
+
+/* Neon animated borders */
+@keyframes glow-pulse {
+  0%, 100% { 
+    border-color: rgba(0, 217, 255, 0.15);
+    box-shadow: 0 0 12px rgba(0, 217, 255, 0.05);
+  }
+  50% { 
+    border-color: rgba(0, 217, 255, 0.3);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.1);
+  }
+}
+
+.neon-border-blue {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-purple {
+  0%, 100% { 
+    border-color: rgba(139, 92, 246, 0.15);
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.05);
+  }
+  50% { 
+    border-color: rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+  }
+}
+
+.neon-border-purple {
+  animation: glow-pulse-purple 4s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-orange {
+  0%, 100% { 
+    border-color: rgba(249, 115, 22, 0.15);
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.05);
+  }
+  50% { 
+    border-color: rgba(249, 115, 22, 0.3);
+    box-shadow: 0 0 20px rgba(249, 115, 22, 0.1);
+  }
+}
+
+.neon-border-orange {
+  animation: glow-pulse-orange 4s ease-in-out infinite;
+}
+
+/* Streak fire animation */
+@keyframes streak-fire {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.animate-streak-fire {
+  animation: streak-fire 1.5s ease-in-out infinite;
+}
+
+/* Custom scrollbar for task lists and panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Animate-in for new elements */
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: animate-in 0.25s ease-out;
+}
+
