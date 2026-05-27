@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-// Next.js App Router configuration with forced Webpack compiler for Vercel production deployment
+// Next.js App Router configuration with forced classic Webpack compiler for Vercel production deployment
 const nextConfig = {
   allowedDevOrigins: ["192.168.0.102", "192.168.0.102:3000", "localhost:3000"],
   env: {
