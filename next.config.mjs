@@ -20,6 +20,7 @@ const nextConfig = {
     NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || process.env.VITE_FIREBASE_MEASUREMENT_ID,
   },
   webpack: (config, { webpack }) => {
+    config.resolve.fallback = { fs: false, net: false, tls: false, child_process: false };
     config.plugins.push(
       new webpack.DefinePlugin({
         'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(process.env.VITE_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
