@@ -1,0 +1,63 @@
+runConfig:
+  cpu: 1
+  memoryMiB: 512
+  minInstances: 0
+  maxInstances: 100
+  concurrency: 80
+
+env:
+  # Firebase PRD Environment Variables (Standard)
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "AIzaSyCpsFk-dTm0c09RDwBZl3ZlrzbjxV3I_jI"
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "physics-vault-af4fd.firebaseapp.com"
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "physics-vault-af4fd"
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "physics-vault-af4fd.firebasestorage.app"
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "835353082883"
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "1:835353082883:web:f697b53c8db16c500e6236"
+  - variable: NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+    value: "G-E5KZ5YRD9Z"
+
+  # Legacy Webpack Environment Variables (Backward Compatibility)
+  - variable: VITE_FIREBASE_API_KEY
+    value: "AIzaSyCpsFk-dTm0c09RDwBZl3ZlrzbjxV3I_jI"
+  - variable: VITE_FIREBASE_AUTH_DOMAIN
+    value: "physics-vault-af4fd.firebaseapp.com"
+  - variable: VITE_FIREBASE_DATABASE_URL
+    value: "https://physics-vault-af4fd-default-rtdb.firebaseio.com"
+  - variable: VITE_FIREBASE_PROJECT_ID
+    value: "physics-vault-af4fd"
+  - variable: VITE_FIREBASE_STORAGE_BUCKET
+    value: "physics-vault-af4fd.firebasestorage.app"
+  - variable: VITE_FIREBASE_MESSAGING_SENDER_ID
+    value: "835353082883"
+  - variable: VITE_FIREBASE_APP_ID
+    value: "1:835353082883:web:f697b53c8db16c500e6236"
+  - variable: VITE_FIREBASE_MEASUREMENT_ID
+    value: "G-E5KZ5YRD9Z"
+
+  # Razorpay Keys
+  - variable: NEXT_PUBLIC_RAZORPAY_KEY_ID
+    value: "rzp_live_StbrZnQ0xnLGXw"
+  - variable: RAZORPAY_KEY_SECRET
+    value: "XFdYbtG9jIhLocZYMOznh8MD"
+
+  # Gemini AI API Key
+  - variable: GEMINI_API_KEY
+    value: "AIzaSyDZzog1BpU751FoN0uezmwvHqp_r57FA_E"
+
+  # Google Drive API Keys & Folder IDs
+  - variable: NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY
+    value: "AIzaSyBX3U8R40QVGuSf7cA20TJNOpsBOh4Arc0"
+  - variable: NEXT_PUBLIC_DRIVE_FOLDER_CHEMISTRY
+    value: "1BbZcRa1MWf3nsJqereZDlOx-ThdPO-0Y"
+  - variable: NEXT_PUBLIC_DRIVE_FOLDER_MATHS
+    value: "1Nc8t1vGEGK0XVeHVQKw3yaeCVu1bHcIQ"
+  - variable: NEXT_PUBLIC_DRIVE_FOLDER_PHYSICS_NOTES
+    value: "1fqJwA4WR1FLfeWlLDrWe8wU5cAptS1at"
+  - variable: NEXT_PUBLIC_DRIVE_FOLDER_PHYSICS_TEXTBOOKS
+    value: "1xTErYgja2vJtokKVEqq-PPcFLMHhneyM"
