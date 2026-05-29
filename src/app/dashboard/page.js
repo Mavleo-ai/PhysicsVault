@@ -129,57 +129,91 @@ export default function DashboardPage() {
   }  // Subscribe paywall — only allow subscribed users to access the study dashboard
   if (user && (user.tier === "free" || !user.tier)) {
     return (
-      <div className="relative min-h-screen bg-black text-white flex flex-col justify-center items-center overflow-hidden p-6 select-none">
+      <div className="relative min-h-screen bg-black text-white flex flex-col overflow-hidden select-none">
         {/* Background elements */}
         <SpaceBackground />
         <div className="absolute inset-0 bg-black/60 z-[1] pointer-events-none" />
 
-        {/* Paywall Card */}
-        <div className="relative z-10 glass-panel border border-white/10 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
-          {/* Locked Icon */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-violet-500/10 to-sky-500/10 border border-violet-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(139,92,246,0.15)] animate-pulse">
-            <ShieldCheck className="w-8 h-8 text-violet-400" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-lg md:text-xl font-display font-extrabold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
-              Command Station Locked
-            </h2>
-            <p className="text-[10px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
-              Access to the advanced JEE/NEET study dashboard is reserved exclusively for subscribed members.
-            </p>
-          </div>
-
-          {/* Current Tier Info Card */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5 text-left font-mono">
-            <div className="flex justify-between items-center text-[9px] text-zinc-500">
-              <span>STUDENT PROFILE</span>
-              <span>LOCKED</span>
+        {/* Top Navigation Bar */}
+        <header className="relative z-10 py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center w-full">
+          {/* Left: Logo */}
+          <a href="/" className="flex items-center gap-2 group">
+            <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
+              <span className="font-display font-bold text-white text-[10px]">PV</span>
             </div>
-            <div className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider">
+            <span className="font-display font-extrabold text-sm tracking-wider">
+              PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
+            </span>
+          </a>
+
+          {/* Right: User + Logout */}
+          <div className="flex items-center gap-3">
+            <span className="hidden md:flex text-[10px] text-zinc-400 items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] px-3 py-1.5 rounded-full font-mono">
+              <ShieldCheck className="w-3 h-3 text-red-400 animate-pulse" />
               {user.email}
-            </div>
-            <div className="flex justify-between items-center text-[9px] pt-1 border-t border-white/5">
-              <span className="text-zinc-500">SUBSCRIPTION LEVEL:</span>
-              <span className="text-red-400 font-bold uppercase">Free Tier</span>
-            </div>
-          </div>
+              <span className="ml-1.5 text-[7px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30">
+                {user.tier || "free"}
+              </span>
+            </span>
 
-          {/* Action buttons */}
-          <div className="space-y-3 pt-2">
-            <a
-              href="/#pricing"
-              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-600 border border-orange-500/20 text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:from-orange-500 hover:to-pink-700 transition-all cursor-pointer text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
-            >
-              Upgrade Tier Now
-            </a>
             <button
               onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+              className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-white border border-white/[0.06] px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
             >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign Out
+              <LogOut className="w-3 h-3" />
+              <span className="hidden sm:inline">Sign Out</span>
             </button>
+          </div>
+        </header>
+
+        {/* Center: Paywall Card */}
+        <div className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <div className="glass-panel border border-white/10 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
+            {/* Locked Icon */}
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-violet-500/10 to-sky-500/10 border border-violet-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(139,92,246,0.15)] animate-pulse">
+              <ShieldCheck className="w-8 h-8 text-violet-400" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-lg md:text-xl font-display font-extrabold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
+                Command Station Locked
+              </h2>
+              <p className="text-[10px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
+                Access to the advanced JEE/NEET study dashboard is reserved exclusively for subscribed members.
+              </p>
+            </div>
+
+            {/* Current Tier Info Card */}
+            <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5 text-left font-mono">
+              <div className="flex justify-between items-center text-[9px] text-zinc-500">
+                <span>STUDENT PROFILE</span>
+                <span>LOCKED</span>
+              </div>
+              <div className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider">
+                {user.email}
+              </div>
+              <div className="flex justify-between items-center text-[9px] pt-1 border-t border-white/5">
+                <span className="text-zinc-500">SUBSCRIPTION LEVEL:</span>
+                <span className="text-red-400 font-bold uppercase">Free Tier</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="space-y-3 pt-2">
+              <a
+                href="/#pricing"
+                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-600 border border-orange-500/20 text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:from-orange-500 hover:to-pink-700 transition-all cursor-pointer text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
+              >
+                Upgrade Tier Now
+              </a>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -268,18 +302,6 @@ export default function DashboardPage() {
             >
               {user.tier}
             </span>
-            {user.tier && user.tier !== "free" && (
-              <button
-                onClick={() => {
-                  upgradeUserTier(user.uid, "free");
-                  window.location.reload();
-                }}
-                className="text-[8px] font-mono text-red-400 hover:text-red-300 underline cursor-pointer ml-1 font-bold uppercase tracking-wider transition-colors"
-                title="Reset subscription to Free Tier for paywall testing"
-              >
-                Reset
-              </button>
-            )}
           </span>
 
           <button
