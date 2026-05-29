@@ -972,7 +972,7 @@ export default function Home() {
                 {/* CARD 1: ASPIRANT (ORANGE ACTIVE GLOW CARD) */}
                 <div 
                   className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] cursor-pointer hover:shadow-[0_0_40px_rgba(249,115,22,0.15)] border-orange-500/20 transition-all duration-300"
-                  onClick={() => handlePayment("Aspirant", 10)}
+                  onClick={() => handlePayment("Aspirant", 200)}
                 >
                   <div className="space-y-6">
                     <div className="flex justify-between items-start">
@@ -991,7 +991,7 @@ export default function Home() {
                     <div className="py-4 border-b border-white/5">
                       <div className="flex items-baseline gap-2">
                         <span className="text-zinc-600 line-through text-sm font-medium">₹299/mo</span>
-                        <span className="text-5xl font-display font-extrabold text-white">₹10</span>
+                        <span className="text-5xl font-display font-extrabold text-white">₹200</span>
                         <span className="text-zinc-400 text-xs">/ month</span>
                       </div>
                       <span className="block text-[10px] font-mono text-zinc-500 mt-2 uppercase tracking-wider">
