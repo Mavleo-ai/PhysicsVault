@@ -118,96 +118,28 @@ export default function Home() {
 
   // Live AI Doubt Solver triggers mapped dynamically
 
-  // Dynamically load Razorpay's checkout script
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  // Launch Razorpay Checkout Portal
-  const handlePayment = async (planName, priceINR) => {
-    setPaymentStatus(null);
-
+  // Local Instant Upgrade flow for PhysicsVault
+  const handlePayment = async (planName) => {
     if (!user) {
       triggerAuth("signup");
       return;
     }
-
-    setCheckoutLoading(true);
-
-    const scriptLoaded = await loadRazorpayScript();
-    if (!scriptLoaded) {
-      alert("Failed to load Razorpay payment client. Check network connection.");
-      setCheckoutLoading(false);
-      return;
-    }
-
-    const amountPaise = priceINR * 100;
-    const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_live_StbrZnQ0xnLGXw";
-
-    const options = {
-      key: razorpayKey,
-      amount: amountPaise,
-      currency: "INR",
-      name: "PhysicsVault Studio",
-      description: `${planName} Subscription Upgrade`,
-      image: "/next.svg",
-      handler: async function (response) {
-        try {
-          const tier = planName.toLowerCase();
-          upgradeUserTier(user.uid, tier);
-          setUser(prev => prev ? { ...prev, tier } : null);
-
-          setReceiptDetails({
-            paymentId: response.razorpay_payment_id,
-            plan: planName,
-            amount: priceINR,
-            orderId: `ord_${Math.random().toString(36).substr(2, 9)}`,
-            date: new Date().toLocaleDateString(),
-          });
-          setPaymentStatus("success");
-        } catch (err) {
-          console.error("Failed to upgrade student subscription tier:", err);
-          setPaymentStatus("failure");
-        } finally {
-          setCheckoutLoading(false);
-        }
-      },
-      prefill: {
-        email: user.email,
-        contact: "9999999999",
-      },
-      theme: {
-        color: "#f97316", // Interstellar Orange theme
-      },
-      modal: {
-        ondismiss: function () {
-          setCheckoutLoading(false);
-        }
-      }
-    };
-
     try {
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", function () {
-        setPaymentStatus("failure");
-        setCheckoutLoading(false);
+      const tier = planName.toLowerCase();
+      upgradeUserTier(user.uid, tier);
+      setUser(prev => prev ? { ...prev, tier } : null);
+      
+      setReceiptDetails({
+        paymentId: `pay_${Math.random().toString(36).substr(2, 9)}`,
+        plan: planName,
+        amount: planName === "Titan" ? 1500 : 200,
+        orderId: `ord_${Math.random().toString(36).substr(2, 9)}`,
+        date: new Date().toLocaleDateString(),
       });
-      rzp.open();
-    } catch (e) {
-      console.error("Razorpay initiation error:", e);
+      setPaymentStatus("success");
+    } catch (err) {
+      console.error("Failed to upgrade student tier:", err);
       setPaymentStatus("failure");
-      setCheckoutLoading(false);
     }
   };
 
@@ -948,23 +880,15 @@ export default function Home() {
 
               <div className="text-center max-w-2xl mx-auto mb-20 space-y-3 relative z-10">
                 <span className="text-[10px] font-mono tracking-[0.25em] text-orange-400 uppercase font-bold">
-                  SECURE SUBSCRIPTION PAYMENT
+                  STUDENT COCKPIT ACCESS
                 </span>
                 <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
                   Join the PhysicsVault Fleet
                 </h2>
                 <p className="text-sm text-zinc-500 font-medium">
-                  Unlock access to unlimited study notes, animated textbooks, and AI doubt solvers via Razorpay.
+                  Unlock access to unlimited study notes, animated textbooks, and AI doubt solvers instantly.
                 </p>
               </div>
-
-              {/* Checkout Loader */}
-              {checkoutLoading && (
-                <div className="flex flex-col items-center justify-center p-6 bg-white/5 border border-white/10 rounded-2xl max-w-sm mx-auto mb-8 animate-pulse text-xs text-orange-400 gap-2">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  Initiating secure Razorpay checkout...
-                </div>
-              )}
 
               {/* Pricing Cards - Highly contrasted Orange vs Blue glows */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto relative z-20">
@@ -1088,7 +1012,7 @@ export default function Home() {
               </div>
 
               <div className="text-center mt-12 text-[10px] text-zinc-500 tracking-wider font-mono">
-                * Prices locked forever for founding students. Standard secure Razorpay encryption active.
+                * Access level sync complete. Instant activation active.
               </div>
             </section>
 

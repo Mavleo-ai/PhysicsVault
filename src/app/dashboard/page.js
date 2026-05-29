@@ -128,66 +128,6 @@ export default function DashboardPage() {
     );
   }
 
-  // Subscribe paywall — only allow subscribed users to access the study dashboard
-  if (user && (user.tier === "free" || !user.tier)) {
-    return (
-      <div className="relative min-h-screen bg-black text-white flex flex-col justify-center items-center overflow-hidden p-6 select-none">
-        {/* Background elements */}
-        <SpaceBackground />
-        <div className="absolute inset-0 bg-black/60 z-[1] pointer-events-none" />
-
-        {/* Paywall Card */}
-        <div className="relative z-10 glass-panel border border-white/10 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md">
-          {/* Locked Icon */}
-          <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-violet-500/10 to-sky-500/10 border border-violet-500/30 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(139,92,246,0.15)] animate-pulse">
-            <ShieldCheck className="w-8 h-8 text-violet-400" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-lg md:text-xl font-display font-extrabold tracking-widest uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
-              Command Station Locked
-            </h2>
-            <p className="text-[10px] md:text-xs text-zinc-500 font-mono tracking-wide leading-relaxed">
-              Access to the advanced JEE/NEET study dashboard is reserved exclusively for subscribed members.
-            </p>
-          </div>
-
-          {/* Current Tier Info Card */}
-          <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-1.5 text-left font-mono">
-            <div className="flex justify-between items-center text-[9px] text-zinc-500">
-              <span>STUDENT PROFILE</span>
-              <span>LOCKED</span>
-            </div>
-            <div className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider">
-              {user.email}
-            </div>
-            <div className="flex justify-between items-center text-[9px] pt-1 border-t border-white/5">
-              <span className="text-zinc-500">SUBSCRIPTION LEVEL:</span>
-              <span className="text-red-400 font-bold uppercase">Free Tier</span>
-            </div>
-          </div>
-
-          {/* Action buttons */}
-          <div className="space-y-3 pt-2">
-            <a
-              href="/#pricing"
-              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-600 border border-orange-500/20 text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:from-orange-500 hover:to-pink-700 transition-all cursor-pointer text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
-            >
-              Upgrade Tier Now
-            </a>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[9px] font-mono font-bold uppercase tracking-wider text-zinc-400 hover:bg-white/10 hover:text-white transition-all cursor-pointer"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden select-none">
       {/* Black hole background */}
