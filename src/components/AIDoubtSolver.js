@@ -191,7 +191,7 @@ export default function AIDoubtSolver() {
     );
   }
 
-  const isSubscribed = !!user;
+  const isSubscribed = user && (user.tier === "titan" || user.tier === "aspirant");
 
   if (!isSubscribed) {
     return (
