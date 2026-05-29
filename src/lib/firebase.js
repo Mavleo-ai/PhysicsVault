@@ -33,7 +33,13 @@ export const getUserTier = (uid) => {
     const currentUser = auth.currentUser;
     if (currentUser && currentUser.email) {
       const email = currentUser.email.toLowerCase();
-      if (email === "poosalapati.leosandal@gmail.com" || email === "atibonnoot@gmail.com") {
+      const allowedEmails = [
+        "poosalapati.leosandal@gmail.com",
+        "atibonnoot@gmail.com",
+        "srujanalovestoyap@gmail.com",
+        "ramvirat.reddy@gmail.com"
+      ];
+      if (allowedEmails.includes(email)) {
         return "titan";
       }
     }
