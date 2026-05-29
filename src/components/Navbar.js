@@ -1,3 +1,11 @@
+/**
+ * PHYSICSVAULT — Futuristic Cosmic SaaS Studio
+ * Designed and Developed by Leo Sandal
+ * 
+ * Website: PhysicsVault
+ * Author Email: poosalapati.leosandal@gmail.com
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,24 +29,46 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
   }, []);
 
   return (
-    <nav
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ease-in-out ${
-        isScrolled
-          ? "py-5 bg-black/60 backdrop-blur-md border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
-          : "py-10 bg-transparent"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-12 flex items-center justify-between">
-        {/* Left Side: Logo */}
-        <a href="#" className="flex items-center gap-2 group">
-          <div className="relative w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30 group-hover:scale-105 transition-transform duration-300">
-            <span className="font-display font-bold text-white text-sm">PV</span>
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 blur opacity-40 group-hover:opacity-80 transition-opacity" />
+    <div className="fixed top-0 inset-x-0 z-50 flex flex-col">
+      {/* Premium Top Bar Banner */}
+      <div className="w-full bg-gradient-to-r from-[#030303]/90 via-orange-500/10 to-[#030303]/90 backdrop-blur-md border-b border-white/5 py-2 px-12 flex justify-center items-center">
+        <div className="max-w-7xl w-full flex justify-between items-center text-[8px] font-mono tracking-[0.2em] text-zinc-500 uppercase font-bold">
+          <div className="flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Sim System: Active</span>
           </div>
-          <span className="font-display font-extrabold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400">
-            PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
-          </span>
-        </a>
+          <div className="flex items-center gap-1.5">
+            Designed by <span className="text-white font-extrabold bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent text-glow">Leo Sandal</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span>SECURE TERMINAL</span>
+          </div>
+        </div>
+      </div>
+
+      <nav
+        className={`w-full transition-all duration-500 ease-in-out ${
+          isScrolled
+            ? "py-4 bg-black/60 backdrop-blur-md border-b border-white/5 shadow-[0_4px_30px_rgba(0,0,0,0.8)]"
+            : "py-8 bg-transparent"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-12 flex items-center justify-between">
+          {/* Left Side: Logo */}
+          <a href="#" className="flex items-center gap-2 group">
+            <div className="relative w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg shadow-violet-500/30 group-hover:scale-105 transition-transform duration-300">
+              <span className="font-display font-bold text-white text-sm">PV</span>
+              <div className="absolute inset-0 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 blur opacity-40 group-hover:opacity-80 transition-opacity" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-lg tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-200 to-zinc-400 leading-none">
+                PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
+              </span>
+              <span className="text-[7px] font-mono tracking-widest text-zinc-500 uppercase mt-1">
+                Designed by Leo Sandal
+              </span>
+            </div>
+          </a>
 
         {/* Center: Navigation Links */}
         <div className="hidden md:flex items-center gap-14 md:ml-6 lg:ml-8">
@@ -200,5 +230,6 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
         </div>
       )}
     </nav>
+    </div>
   );
 }

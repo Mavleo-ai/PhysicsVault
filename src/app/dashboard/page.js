@@ -1,3 +1,11 @@
+/**
+ * PHYSICSVAULT — Futuristic Cosmic SaaS Studio
+ * Designed and Developed by Leo Sandal
+ * 
+ * Website: PhysicsVault
+ * Author Email: poosalapati.leosandal@gmail.com
+ */
+
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -135,16 +143,38 @@ export default function DashboardPage() {
         <div className="absolute inset-0 bg-black/60 z-[1] pointer-events-none" />
 
         {/* Top Navigation Bar */}
-        <header className="relative z-10 py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center w-full">
-          {/* Left: Logo */}
-          <a href="/" className="flex items-center gap-2 group">
-            <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
-              <span className="font-display font-bold text-white text-[10px]">PV</span>
+        <div className="relative z-10 w-full flex flex-col">
+          {/* Premium Top Bar Banner */}
+          <div className="w-full bg-gradient-to-r from-[#030303]/90 via-orange-500/10 to-[#030303]/90 border-b border-white/5 py-2 px-6 md:px-12 flex justify-center items-center">
+            <div className="max-w-7xl w-full flex justify-between items-center text-[8px] font-mono tracking-[0.2em] text-zinc-500 uppercase font-bold">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Sim System: Active</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                Designed by <span className="text-white font-extrabold bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent text-glow">Leo Sandal</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>SECURE TERMINAL</span>
+              </div>
             </div>
-            <span className="font-display font-extrabold text-sm tracking-wider">
-              PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
-            </span>
-          </a>
+          </div>
+
+          <header className="py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center w-full">
+            {/* Left: Logo */}
+            <a href="/" className="flex items-center gap-2 group">
+              <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
+                <span className="font-display font-bold text-white text-[10px]">PV</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-display font-extrabold text-sm tracking-wider leading-none">
+                  PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
+                </span>
+                <span className="text-[6px] font-mono tracking-widest text-zinc-500 uppercase mt-0.5">
+                  Designed by Leo Sandal
+                </span>
+              </div>
+            </a>
 
           {/* Right: User + Logout */}
           <div className="flex items-center gap-3">
@@ -165,6 +195,7 @@ export default function DashboardPage() {
             </button>
           </div>
         </header>
+        </div>
 
         {/* Center: Paywall Card */}
         <div className="flex-1 flex items-center justify-center p-6 relative z-10">
@@ -227,16 +258,38 @@ export default function DashboardPage() {
       <div className="absolute inset-0 bg-black/50 z-[1] pointer-events-none" />
 
       {/* Top Navigation Bar */}
-      <header className="relative z-10 py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center">
-        {/* Left: Logo */}
-        <a href="/" className="flex items-center gap-2 group">
-          <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
-            <span className="font-display font-bold text-white text-[10px]">PV</span>
+      <div className="relative z-10 w-full flex flex-col">
+        {/* Premium Top Bar Banner */}
+        <div className="w-full bg-gradient-to-r from-[#030303]/90 via-orange-500/10 to-[#030303]/90 border-b border-white/5 py-2 px-6 md:px-12 flex justify-center items-center">
+          <div className="max-w-7xl w-full flex justify-between items-center text-[8px] font-mono tracking-[0.2em] text-zinc-500 uppercase font-bold">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Sim System: Active</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              Designed by <span className="text-white font-extrabold bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent text-glow">Leo Sandal</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>SECURE TERMINAL</span>
+            </div>
           </div>
-          <span className="font-display font-extrabold text-sm tracking-wider">
-            PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
-          </span>
-        </a>
+        </div>
+
+        <header className="py-6 px-6 md:px-12 border-b border-white/[0.04] bg-black/40 backdrop-blur-xl flex justify-between items-center">
+          {/* Left: Logo */}
+          <a href="/" className="flex items-center gap-2 group">
+            <div className="relative w-7 h-7 rounded-lg bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center shadow-lg">
+              <span className="font-display font-bold text-white text-[10px]">PV</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-display font-extrabold text-sm tracking-wider leading-none">
+                PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
+              </span>
+              <span className="text-[6px] font-mono tracking-widest text-zinc-500 uppercase mt-0.5">
+                Designed by Leo Sandal
+              </span>
+            </div>
+          </a>
 
         {/* Center: Tab Switcher */}
         <div className="hidden md:flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/5">
@@ -313,6 +366,7 @@ export default function DashboardPage() {
           </button>
         </div>
       </header>
+      </div>
 
       {/* Mobile Tab Switcher */}
       <div className="md:hidden relative z-10 flex flex-wrap gap-1 mx-4 mt-3 bg-white/[0.03] p-1 rounded-xl border border-white/5">

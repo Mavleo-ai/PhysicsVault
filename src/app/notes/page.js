@@ -1,3 +1,11 @@
+/**
+ * PHYSICSVAULT — Futuristic Cosmic SaaS Studio
+ * Designed and Developed by Leo Sandal
+ * 
+ * Website: PhysicsVault
+ * Author Email: poosalapati.leosandal@gmail.com
+ */
+
 "use client";
 
 import { useEffect, useState, useRef } from "react";
