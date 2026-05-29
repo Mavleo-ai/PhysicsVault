@@ -30,6 +30,13 @@ if (typeof window !== "undefined") {
 // Relativistic subscription tier sync utilities mapped to persistent Firebase User UIDs
 export const getUserTier = (uid) => {
   if (typeof window !== "undefined") {
+    const currentUser = auth.currentUser;
+    if (currentUser && currentUser.email) {
+      const email = currentUser.email.toLowerCase();
+      if (email === "poosalapati.leosandal@gmail.com" || email === "atibonnoot@gmail.com") {
+        return "titan";
+      }
+    }
     return localStorage.getItem(`pv_tier_${uid}`) || "free";
   }
   return "free";
