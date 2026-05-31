@@ -46,7 +46,7 @@ export default function Sidebar({ studyData, user }) {
 
       {/* Player Card */}
       <div className="text-center pb-4 border-b border-white/5">
-        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-sky-500 to-violet-600 flex items-center justify-center mx-auto mb-2 shadow-lg shadow-violet-500/20">
+        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#E8A020] to-[#7B5EA7] flex items-center justify-center mx-auto mb-2 shadow-lg shadow-[#7B5EA7]/20">
           <span className="text-white text-sm font-display font-bold">
             {(user?.displayName || "S")[0].toUpperCase()}
           </span>
@@ -54,28 +54,28 @@ export default function Sidebar({ studyData, user }) {
         <p className="text-xs font-semibold text-white truncate">{user?.displayName || "Student"}</p>
         <p className="text-[9px] font-mono text-zinc-500 mt-0.5">{currentLevel.icon} {currentLevel.rank}</p>
       </div>
-
+ 
       {/* Daily Goal — Circular Progress */}
       <div className="flex flex-col items-center">
         <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-1">
-          <Target className="w-3 h-3 text-sky-400" />
+          <Target className="w-3 h-3" style={{ color: "#E8A020" }} />
           Daily Goal
         </span>
-
+ 
         <div className="relative w-20 h-20 mb-1">
           <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
             <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="4" />
             <circle
               cx="40" cy="40" r="36"
               fill="none"
-              stroke={dailyProgress >= 1 ? "#22c55e" : "#00d9ff"}
+              stroke={dailyProgress >= 1 ? "#39D98A" : "#E8A020"}
               strokeWidth="4"
               strokeLinecap="round"
               strokeDasharray={dailyCircumference}
               strokeDashoffset={dailyCircumference * (1 - dailyProgress)}
               style={{
                 transition: "stroke-dashoffset 0.8s ease",
-                filter: `drop-shadow(0 0 4px ${dailyProgress >= 1 ? "rgba(34,197,94,0.4)" : "rgba(0,217,255,0.3)"})`,
+                filter: `drop-shadow(0 0 4px ${dailyProgress >= 1 ? "rgba(57,217,138,0.4)" : "rgba(232,160,32,0.35)"})`,
               }}
             />
           </svg>

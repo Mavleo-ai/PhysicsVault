@@ -2,7 +2,14 @@
 
 import { useEffect, useRef } from "react";
 
-export default function SpaceBackground() {
+/**
+ * SpaceBackground
+ *
+ * @param {boolean} showBlackhole  — If true, renders the full cinematic
+ *   amber/orange accretion disk blackhole (hero section only).
+ *   If false (default), renders the plain deep-space starfield.
+ */
+export default function SpaceBackground({ showBlackhole = false }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -22,83 +29,94 @@ export default function SpaceBackground() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       initStars();
-      initAccretionDisk();
-      initEnergyArcs();
       initDustClouds();
+      if (showBlackhole) {
+        initAccretionDisk();
+        initEnergyArcs();
+      }
     };
 
-    // Multi-layer deep star field with depth parallax
+    // ── Stars — PDR palette (whites, ambers, violets) ──
     const initStars = () => {
       stars = [];
-      const count = Math.min(300, Math.floor((canvas.width * canvas.height) / 6000));
+      const count = Math.min(320, Math.floor((canvas.width * canvas.height) / 5500));
       for (let i = 0; i < count; i++) {
-        const depth = Math.random(); // 0 = far, 1 = close
+        const depth = Math.random();
+        const rnd = Math.random();
         stars.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          size: depth * 1.5 + 0.2,
+          size: depth * 1.6 + 0.2,
           depth,
-          opacity: Math.random() * 0.5 + 0.15,
-          // Sci-fi color palette: whites, cyans, blues, purples
-          color: Math.random() > 0.92
-            ? "#00d9ff"
-            : Math.random() > 0.88
-            ? "#a78bfa"
-            : Math.random() > 0.82
-            ? "#38bdf8"
-            : "#ffffff",
+          opacity: Math.random() * 0.55 + 0.12,
+          // PDR star palette: mostly white, some amber/gold, some violet
+          color: rnd > 0.94
+            ? "#E8A020"         // amber
+            : rnd > 0.89
+            ? "#FF6B35"         // orange
+            : rnd > 0.84
+            ? "#C4A8F0"         // soft violet
+            : rnd > 0.78
+            ? "#FFD580"         // warm gold
+            : "#F0F0FF",        // soft white
           twinkleSpeed: Math.random() * 0.012 + 0.003,
           twinkleDir: Math.random() > 0.5 ? 1 : -1,
-          // Some stars pulse brighter (beacon stars)
           isBeacon: Math.random() > 0.97,
         });
       }
     };
 
-    // Dual-layer accretion disk: hot inner orange + outer blue energy
+    // ── Nebula dust clouds (amber + violet hues) ──
+    const initDustClouds = () => {
+      dustClouds = [];
+      const clouds = [
+        { color: "rgba(232, 160, 32, ",   opacity: 0.025 }, // amber
+        { color: "rgba(123, 94, 167, ",   opacity: 0.030 }, // violet
+        { color: "rgba(10,  0,  30, ",    opacity: 0.045 }, // dark void
+        { color: "rgba(255, 107, 53, ",   opacity: 0.018 }, // orange
+        { color: "rgba(80,  40, 120, ",   opacity: 0.028 }, // deep purple
+      ];
+      for (let i = 0; i < 5; i++) {
+        dustClouds.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          radius: 120 + Math.random() * 220,
+          color: clouds[i].color,
+          opacity: clouds[i].opacity,
+          driftX: (Math.random() - 0.5) * 0.07,
+          driftY: (Math.random() - 0.5) * 0.045,
+        });
+      }
+    };
+
+    // ── Accretion disk (amber/orange inner, violet outer) ──
     const initAccretionDisk = () => {
       accretionParticles = [];
-      const particleCount = 350;
+      const particleCount = 400;
       for (let i = 0; i < particleCount; i++) {
-        const distance = Math.random() * 200 + 65;
+        const distance = Math.random() * 210 + 60;
         const angle = Math.random() * Math.PI * 2;
-        const orbitSpeed = (1 / Math.sqrt(distance)) * 0.32;
-
-        // Inner ring = hot orange/white, outer ring = blue/cyan energy
-        const isInner = distance < 140;
+        const orbitSpeed = (1 / Math.sqrt(distance)) * 0.30;
+        const isInner = distance < 145;
         let colorType, glowColor;
 
         if (isInner) {
-          const rand = Math.random();
-          if (rand < 0.5) {
-            colorType = "rgba(255, 165, 50, ";  // Hot amber
-            glowColor = "#ffa532";
-          } else if (rand < 0.8) {
-            colorType = "rgba(255, 200, 120, "; // White-hot core
-            glowColor = "#ffc878";
-          } else {
-            colorType = "rgba(255, 100, 30, ";  // Deep orange
-            glowColor = "#ff641e";
-          }
+          const r = Math.random();
+          if (r < 0.45) { colorType = "rgba(232, 160, 32, "; glowColor = "#E8A020"; }       // amber
+          else if (r < 0.78) { colorType = "rgba(255, 107, 53, "; glowColor = "#FF6B35"; }  // orange
+          else { colorType = "rgba(255, 200, 80, "; glowColor = "#FFC850"; }                 // gold-white
         } else {
-          const rand = Math.random();
-          if (rand < 0.5) {
-            colorType = "rgba(0, 180, 255, ";   // Cyan energy
-            glowColor = "#00b4ff";
-          } else if (rand < 0.8) {
-            colorType = "rgba(100, 140, 255, "; // Blue plasma
-            glowColor = "#648cff";
-          } else {
-            colorType = "rgba(160, 120, 255, "; // Violet radiation
-            glowColor = "#a078ff";
-          }
+          const r = Math.random();
+          if (r < 0.5) { colorType = "rgba(123, 94, 167, "; glowColor = "#7B5EA7"; }        // violet
+          else if (r < 0.8) { colorType = "rgba(180, 130, 240, "; glowColor = "#B482F0"; }  // light violet
+          else { colorType = "rgba(232, 160, 32, "; glowColor = "#E8A020"; }                 // amber outlier
         }
 
         accretionParticles.push({
           distance,
           angle,
           orbitSpeed,
-          size: isInner ? Math.random() * 1.6 + 0.5 : Math.random() * 1.2 + 0.3,
+          size: isInner ? Math.random() * 1.8 + 0.5 : Math.random() * 1.3 + 0.3,
           color: colorType,
           glow: glowColor,
           isInner,
@@ -107,222 +125,200 @@ export default function SpaceBackground() {
       }
     };
 
-    // Sci-fi energy arcs orbiting the singularity
+    // ── Energy arcs (amber inner, violet outer) ──
     const initEnergyArcs = () => {
       energyArcs = [];
       for (let i = 0; i < 6; i++) {
         energyArcs.push({
-          radius: 90 + i * 35,
+          radius: 85 + i * 38,
           speed: (0.003 + Math.random() * 0.004) * (i % 2 === 0 ? 1 : -1),
           angle: Math.random() * Math.PI * 2,
-          arcLength: Math.PI * (0.3 + Math.random() * 0.5),
-          opacity: 0.08 + Math.random() * 0.12,
-          color: i < 3 ? "#00d9ff" : "#a78bfa",
-          width: 0.8 + Math.random() * 0.8,
-        });
-      }
-    };
-
-    // Nebula dust clouds
-    const initDustClouds = () => {
-      dustClouds = [];
-      for (let i = 0; i < 5; i++) {
-        dustClouds.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          radius: 100 + Math.random() * 200,
-          color: i % 2 === 0 ? "rgba(0, 100, 200, " : "rgba(80, 40, 160, ",
-          opacity: 0.02 + Math.random() * 0.03,
-          driftX: (Math.random() - 0.5) * 0.08,
-          driftY: (Math.random() - 0.5) * 0.05,
+          arcLength: Math.PI * (0.25 + Math.random() * 0.55),
+          opacity: 0.07 + Math.random() * 0.10,
+          color: i < 3 ? "#E8A020" : "#7B5EA7",
+          width: 0.7 + Math.random() * 0.8,
         });
       }
     };
 
     const handleMouseMove = (e) => {
-      mouse.targetX = (e.clientX - window.innerWidth / 2) * 0.04;
-      mouse.targetY = (e.clientY - window.innerHeight / 2) * 0.04;
+      mouse.targetX = (e.clientX - window.innerWidth / 2) * 0.05;
+      mouse.targetY = (e.clientY - window.innerHeight / 2) * 0.05;
     };
 
     const draw = () => {
       time += 0.002;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Smooth mouse interpolation
       mouse.x += (mouse.targetX - mouse.x) * 0.04;
       mouse.y += (mouse.targetY - mouse.y) * 0.04;
 
       const cx = canvas.width / 2 + mouse.x * 0.2;
       const cy = canvas.height / 2 + mouse.y * 0.2;
 
-      // ── 0. Deep space nebula haze ──
+      // ── 0. Nebula haze ──
       dustClouds.forEach((cloud) => {
         cloud.x += cloud.driftX;
         cloud.y += cloud.driftY;
-        // Wrap around
         if (cloud.x < -cloud.radius) cloud.x = canvas.width + cloud.radius;
         if (cloud.x > canvas.width + cloud.radius) cloud.x = -cloud.radius;
         if (cloud.y < -cloud.radius) cloud.y = canvas.height + cloud.radius;
         if (cloud.y > canvas.height + cloud.radius) cloud.y = -cloud.radius;
 
         const grad = ctx.createRadialGradient(cloud.x, cloud.y, 0, cloud.x, cloud.y, cloud.radius);
-        grad.addColorStop(0, `${cloud.color}${cloud.opacity + Math.sin(time * 2) * 0.01})`);
+        grad.addColorStop(0, `${cloud.color}${cloud.opacity + Math.sin(time * 1.8) * 0.008})`);
         grad.addColorStop(1, `${cloud.color}0)`);
         ctx.fillStyle = grad;
         ctx.fillRect(cloud.x - cloud.radius, cloud.y - cloud.radius, cloud.radius * 2, cloud.radius * 2);
       });
 
-      // ── 1. Star field with depth parallax ──
+      // ── 1. Star field with parallax ──
       stars.forEach((star) => {
         const parallax = star.depth * 0.4;
         const posX = (star.x + mouse.x * parallax + canvas.width) % canvas.width;
         const posY = (star.y + mouse.y * parallax + canvas.height) % canvas.height;
 
         star.opacity += star.twinkleSpeed * star.twinkleDir;
-        if (star.opacity > 0.8 || star.opacity < 0.1) star.twinkleDir *= -1;
+        if (star.opacity > 0.78 || star.opacity < 0.08) star.twinkleDir *= -1;
 
         ctx.beginPath();
         ctx.arc(posX, posY, star.size, 0, Math.PI * 2);
         ctx.fillStyle = star.color;
-        ctx.globalAlpha = Math.max(0.08, Math.min(0.85, star.opacity));
+        ctx.globalAlpha = Math.max(0.06, Math.min(0.85, star.opacity));
         ctx.fill();
 
-        // Beacon stars get a glow halo
         if (star.isBeacon) {
           ctx.beginPath();
-          ctx.arc(posX, posY, star.size * 8, 0, Math.PI * 2);
-          const beaconGrad = ctx.createRadialGradient(posX, posY, 0, posX, posY, star.size * 8);
-          let glowColor = "rgba(255, 255, 255, 0.2)";
-          if (star.color === "#00d9ff") glowColor = "rgba(0, 217, 255, 0.2)";
-          else if (star.color === "#a78bfa") glowColor = "rgba(167, 139, 250, 0.2)";
-          else if (star.color === "#38bdf8") glowColor = "rgba(56, 189, 248, 0.2)";
-          
-          beaconGrad.addColorStop(0, glowColor);
-          beaconGrad.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.globalAlpha = (0.2 + Math.sin(time * 8 + star.x) * 0.1) * star.opacity;
-          ctx.fillStyle = beaconGrad;
+          ctx.arc(posX, posY, star.size * 9, 0, Math.PI * 2);
+          const bg = ctx.createRadialGradient(posX, posY, 0, posX, posY, star.size * 9);
+          let gc = "rgba(240, 240, 255, 0.18)";
+          if (star.color === "#E8A020") gc = "rgba(232, 160, 32, 0.22)";
+          else if (star.color === "#FF6B35") gc = "rgba(255, 107, 53, 0.18)";
+          else if (star.color === "#C4A8F0") gc = "rgba(196, 168, 240, 0.18)";
+          bg.addColorStop(0, gc);
+          bg.addColorStop(1, "rgba(0,0,0,0)");
+          ctx.globalAlpha = (0.18 + Math.sin(time * 8 + star.x) * 0.1) * star.opacity;
+          ctx.fillStyle = bg;
           ctx.fill();
         }
       });
       ctx.globalAlpha = 1.0;
 
-      // ── 2. Gravitational lensing light distortion ring ──
-      const lensRadius = 260 + Math.sin(time * 1.5) * 5;
-      const lensGrad = ctx.createRadialGradient(cx, cy, lensRadius - 30, cx, cy, lensRadius + 30);
-      lensGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
-      lensGrad.addColorStop(0.4, "rgba(0, 180, 255, 0.015)");
-      lensGrad.addColorStop(0.6, "rgba(100, 140, 255, 0.025)");
-      lensGrad.addColorStop(0.8, "rgba(0, 180, 255, 0.01)");
-      lensGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.beginPath();
-      ctx.arc(cx, cy, lensRadius + 30, 0, Math.PI * 2);
-      ctx.fillStyle = lensGrad;
-      ctx.fill();
+      // ── Blackhole section (hero only) ──
+      if (showBlackhole) {
+        // PDR Tip 1: subtle 3° tilt toward mouse
+        const tiltX = mouse.x * 0.03;
+        const tiltY = mouse.y * 0.03;
 
-      // ── 3. Sci-fi energy arcs (orbiting holographic rings) ──
-      energyArcs.forEach((arc) => {
-        arc.angle += arc.speed;
+        // 2. Gravitational lensing shimmer ring
+        const lensRadius = 270 + Math.sin(time * 1.2) * 6;
+        const lensGrad = ctx.createRadialGradient(cx, cy, lensRadius - 35, cx, cy, lensRadius + 35);
+        lensGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
+        lensGrad.addColorStop(0.35, "rgba(232, 160, 32, 0.012)");
+        lensGrad.addColorStop(0.6,  "rgba(123, 94, 167, 0.020)");
+        lensGrad.addColorStop(0.8,  "rgba(232, 160, 32, 0.008)");
+        lensGrad.addColorStop(1,  "rgba(0, 0, 0, 0)");
         ctx.beginPath();
-        ctx.arc(cx, cy, arc.radius, arc.angle, arc.angle + arc.arcLength);
-        ctx.strokeStyle = arc.color;
-        ctx.lineWidth = arc.width;
-        ctx.globalAlpha = arc.opacity + Math.sin(time * 6 + arc.radius) * 0.04;
-        ctx.stroke();
-      });
-      ctx.globalAlpha = 1.0;
-
-      // ── 4. Dual-layer accretion disk ──
-      const singularityRadius = 55 + Math.sin(time * 2.2) * 2;
-
-      accretionParticles.forEach((p) => {
-        p.angle += p.orbitSpeed;
-
-        const cosA = Math.cos(p.angle);
-        const sinA = Math.sin(p.angle);
-
-        // Flattened orbital plane
-        const planX = p.distance * cosA;
-        const planY = p.distance * sinA * 0.13;
-
-        // Gravitational lensing for particles behind the black hole
-        const isBehind = sinA < 0;
-        let lensedX = planX;
-        let lensedY = planY;
-
-        if (isBehind) {
-          const bendStrength = 0.35;
-          lensedY = planY + (planX > 0 ? -1 : 1) * Math.sin(time + p.noiseOffset) * 1.8
-            - (singularityRadius + p.distance * 0.18) * (planX > 0 ? 1 : -1) * bendStrength;
-          lensedX = planX * 1.12;
-        }
-
-        const drawX = cx + lensedX;
-        const drawY = cy + lensedY;
-
-        // Particle glow
-        const distancePercent = Math.max(0.1, 1 - (p.distance - 65) / 200);
-        const alphaVal = distancePercent * (p.isInner ? 0.7 : 0.45);
-
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, p.size, 0, Math.PI * 2);
-        ctx.fillStyle = `${p.color}${alphaVal})`;
-        ctx.shadowBlur = p.size > 1 ? 8 : 3;
-        ctx.shadowColor = p.glow;
+        ctx.arc(cx + tiltX, cy + tiltY, lensRadius + 35, 0, Math.PI * 2);
+        ctx.fillStyle = lensGrad;
         ctx.fill();
-      });
-      ctx.shadowBlur = 0;
 
-      // ── 5. Event horizon (black singularity with sci-fi edge glow) ──
+        // 3. Energy arcs (orbiting rings)
+        energyArcs.forEach((arc) => {
+          arc.angle += arc.speed;
+          ctx.beginPath();
+          ctx.arc(cx + tiltX, cy + tiltY, arc.radius, arc.angle, arc.angle + arc.arcLength);
+          ctx.strokeStyle = arc.color;
+          ctx.lineWidth = arc.width;
+          ctx.globalAlpha = arc.opacity + Math.sin(time * 6 + arc.radius) * 0.03;
+          ctx.stroke();
+        });
+        ctx.globalAlpha = 1.0;
 
-      // Outer photon sphere glow (cyan + purple)
-      const photonGrad = ctx.createRadialGradient(cx, cy, singularityRadius + 2, cx, cy, singularityRadius + 20);
-      photonGrad.addColorStop(0, "rgba(0, 217, 255, 0.12)");
-      photonGrad.addColorStop(0.5, "rgba(139, 92, 246, 0.06)");
-      photonGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.beginPath();
-      ctx.arc(cx, cy, singularityRadius + 20, 0, Math.PI * 2);
-      ctx.fillStyle = photonGrad;
-      ctx.fill();
+        // 4. Accretion disk (amber/orange inner, violet outer)
+        const singRadius = 52 + Math.sin(time * 2.0) * 2;
+        accretionParticles.forEach((p) => {
+          p.angle += p.orbitSpeed;
+          const cosA = Math.cos(p.angle);
+          const sinA = Math.sin(p.angle);
 
-      // Core black sphere with sci-fi edge
-      const coreGrad = ctx.createRadialGradient(cx, cy, singularityRadius * 0.85, cx, cy, singularityRadius);
-      coreGrad.addColorStop(0, "#000000");
-      coreGrad.addColorStop(0.92, "#000000");
-      coreGrad.addColorStop(0.97, "rgba(0, 180, 255, 0.5)");  // Cyan edge
-      coreGrad.addColorStop(1, "rgba(255, 255, 255, 0.9)");    // Bright white boundary
+          // Flattened orbital plane
+          const planX = p.distance * cosA;
+          const planY = p.distance * sinA * 0.12;
 
-      ctx.beginPath();
-      ctx.arc(cx, cy, singularityRadius, 0, Math.PI * 2);
-      ctx.fillStyle = coreGrad;
-      ctx.fill();
+          // Gravitational lensing for particles behind
+          const isBehind = sinA < 0;
+          let lx = planX, ly = planY;
+          if (isBehind) {
+            const bend = 0.38;
+            ly = planY + (planX > 0 ? -1 : 1) * Math.sin(time + p.noiseOffset) * 1.9
+              - (singRadius + p.distance * 0.18) * (planX > 0 ? 1 : -1) * bend;
+            lx = planX * 1.12;
+          }
 
-      // Inner edge ring — bright white with cyan tint
-      ctx.beginPath();
-      ctx.arc(cx, cy, singularityRadius + 1, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(200, 240, 255, 0.85)";
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
+          const drawX = cx + lx + tiltX;
+          const drawY = cy + ly + tiltY;
+          const pct = Math.max(0.1, 1 - (p.distance - 60) / 210);
+          const alpha = pct * (p.isInner ? 0.75 : 0.48);
 
-      // ── 6. Pulsing energy waves from singularity ──
-      for (let w = 0; w < 3; w++) {
-        const waveTime = (time * 0.8 + w * 0.33) % 1;
-        const waveRadius = singularityRadius + waveTime * 180;
-        const waveAlpha = (1 - waveTime) * 0.06;
+          ctx.beginPath();
+          ctx.arc(drawX, drawY, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `${p.color}${alpha})`;
+          ctx.shadowBlur = p.size > 1 ? 10 : 4;
+          ctx.shadowColor = p.glow;
+          ctx.fill();
+        });
+        ctx.shadowBlur = 0;
 
+        // 5. Outer violet halo (photon sphere)
+        const photonGrad = ctx.createRadialGradient(cx + tiltX, cy + tiltY, singRadius + 2, cx + tiltX, cy + tiltY, singRadius + 28);
+        photonGrad.addColorStop(0, "rgba(232, 160, 32, 0.10)");
+        photonGrad.addColorStop(0.4, "rgba(255, 107, 53, 0.06)");
+        photonGrad.addColorStop(0.75, "rgba(123, 94, 167, 0.04)");
+        photonGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
         ctx.beginPath();
-        ctx.arc(cx, cy, waveRadius, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(0, 217, 255, ${waveAlpha})`;
-        ctx.lineWidth = 1;
+        ctx.arc(cx + tiltX, cy + tiltY, singRadius + 28, 0, Math.PI * 2);
+        ctx.fillStyle = photonGrad;
+        ctx.fill();
+
+        // 6. Core black singularity with amber edge glow
+        const coreGrad = ctx.createRadialGradient(cx + tiltX, cy + tiltY, singRadius * 0.82, cx + tiltX, cy + tiltY, singRadius);
+        coreGrad.addColorStop(0, "#00000A");
+        coreGrad.addColorStop(0.90, "#00000A");
+        coreGrad.addColorStop(0.96, "rgba(232, 160, 32, 0.55)");  // amber edge
+        coreGrad.addColorStop(1,    "rgba(255, 255, 200, 0.85)");  // bright boundary
+        ctx.beginPath();
+        ctx.arc(cx + tiltX, cy + tiltY, singRadius, 0, Math.PI * 2);
+        ctx.fillStyle = coreGrad;
+        ctx.fill();
+
+        // Bright amber ring
+        ctx.beginPath();
+        ctx.arc(cx + tiltX, cy + tiltY, singRadius + 1, 0, Math.PI * 2);
+        ctx.strokeStyle = "rgba(232, 160, 32, 0.9)";
+        ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // 7. Pulsing amber energy waves
+        for (let w = 0; w < 3; w++) {
+          const wt = (time * 0.7 + w * 0.33) % 1;
+          const wr = singRadius + wt * 190;
+          const wa = (1 - wt) * 0.05;
+          ctx.beginPath();
+          ctx.arc(cx + tiltX, cy + tiltY, wr, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(232, 160, 32, ${wa})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
       }
 
-      // ── 7. Holographic grid lines (subtle sci-fi overlay) ──
-      ctx.globalAlpha = 0.012;
-      ctx.strokeStyle = "#00d9ff";
+      // ── Subtle holographic scan lines ──
+      ctx.globalAlpha = 0.009;
+      ctx.strokeStyle = showBlackhole ? "#E8A020" : "#8888AA";
       ctx.lineWidth = 0.5;
-
-      // Horizontal scan lines
-      const gridSpacing = 60;
-      const gridOffset = (time * 20) % gridSpacing;
+      const gridSpacing = 65;
+      const gridOffset = (time * 18) % gridSpacing;
       for (let y = gridOffset; y < canvas.height; y += gridSpacing) {
         ctx.beginPath();
         ctx.moveTo(0, y);
@@ -336,7 +332,6 @@ export default function SpaceBackground() {
 
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("mousemove", handleMouseMove);
-
     resizeCanvas();
     draw();
 
@@ -345,25 +340,36 @@ export default function SpaceBackground() {
       window.removeEventListener("mousemove", handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, [showBlackhole]);
 
   return (
-    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black select-none">
-
+    <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none" style={{ background: "#00000A" }}>
       {/* Dynamic Canvas */}
       <canvas ref={canvasRef} className="absolute inset-0 block w-full h-full" />
 
-      {/* Viewport vignette */}
-      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(0,0,0,0)_38%,#030303_100%] pointer-events-none" />
+      {/* Amber radial core glow (hero only) */}
+      {showBlackhole && (
+        <div
+          className="absolute inset-0 pointer-events-none animate-lensing-pulse"
+          style={{
+            background: "radial-gradient(ellipse 55% 45% at 50% 50%, rgba(232,160,32,0.05) 0%, rgba(123,94,167,0.04) 45%, transparent 70%)",
+          }}
+        />
+      )}
 
-      {/* Readability overlay */}
+      {/* Viewport vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.5))"
+          background: "radial-gradient(ellipse at center, transparent 30%, #00000A 100%)",
         }}
       />
 
+      {/* Readability dark overlay */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: "rgba(0, 0, 10, 0.55)" }}
+      />
     </div>
   );
 }

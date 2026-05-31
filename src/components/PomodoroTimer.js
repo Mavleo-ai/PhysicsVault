@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Play, Pause, RotateCcw, Coffee, Brain, Zap } from "lucide-react";
 
 const MODES = {
-  focus: { label: "FOCUS", icon: Brain, color: "#00d9ff", glow: "rgba(0, 217, 255, 0.3)" },
-  break: { label: "BREAK", icon: Coffee, color: "#4ade80", glow: "rgba(74, 222, 128, 0.3)" },
-  longBreak: { label: "LONG BREAK", icon: Zap, color: "#a78bfa", glow: "rgba(167, 139, 250, 0.3)" },
+  focus:     { label: "FOCUS",      icon: Brain,  color: "#E8A020", glow: "rgba(232, 160, 32, 0.35)" },
+  break:     { label: "BREAK",      icon: Coffee, color: "#39D98A", glow: "rgba(57, 217, 138, 0.30)" },
+  longBreak: { label: "LONG BREAK", icon: Zap,    color: "#7B5EA7", glow: "rgba(123, 94, 167, 0.30)" },
 };
 
 export default function PomodoroTimer({ studyData, onUpdate }) {
@@ -158,7 +158,7 @@ export default function PomodoroTimer({ studyData, onUpdate }) {
           <circle
             cx="130" cy="130" r="120"
             fill="none"
-            stroke="rgba(255,255,255,0.04)"
+            stroke="#1A1A2A"
             strokeWidth="6"
           />
           {/* Progress */}
@@ -188,8 +188,12 @@ export default function PomodoroTimer({ studyData, onUpdate }) {
         {/* Timer text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="text-5xl font-display font-extrabold tracking-tight tabular-nums"
-            style={{ color: "#ffffff", textShadow: `0 0 20px ${currentMode.glow}` }}
+            className="text-5xl font-extrabold tracking-tight tabular-nums"
+            style={{
+              fontFamily: "var(--font-mono, 'JetBrains Mono', monospace)",
+              color: "#ffffff",
+              textShadow: `0 0 20px ${currentMode.glow}`,
+            }}
           >
             {formatTime(secondsLeft)}
           </span>

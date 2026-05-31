@@ -80,7 +80,7 @@ export default function TaskManager({ studyData, onUpdate }) {
       {/* Header */}
       <div className="flex justify-between items-center pb-3 border-b border-white/5">
         <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-[0.15em] flex items-center gap-2">
-          <ListTodo className="w-4 h-4 text-violet-400" />
+          <ListTodo className="w-4 h-4 text-amber-400" />
           TASK MANAGER
         </span>
         <div className="flex items-center gap-2">
@@ -92,7 +92,7 @@ export default function TaskManager({ studyData, onUpdate }) {
           </span>
         </div>
       </div>
-
+ 
       {/* Add Task */}
       <div className="space-y-2">
         <div className="flex gap-2">
@@ -102,12 +102,12 @@ export default function TaskManager({ studyData, onUpdate }) {
             onChange={(e) => setNewTask(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
             placeholder="Add a task..."
-            className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-zinc-600 outline-none focus:border-violet-500/30 transition-colors font-medium"
+            className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-zinc-600 outline-none focus:border-amber-500/30 transition-colors font-medium"
           />
           <button
             onClick={addTask}
             disabled={!newTask.trim()}
-            className="px-3 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-400 hover:bg-violet-500/25 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            className="px-3 py-2.5 rounded-xl bg-amber-500/15 border border-amber-500/25 text-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
           </button>

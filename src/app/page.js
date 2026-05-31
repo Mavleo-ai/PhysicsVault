@@ -8,7 +8,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Atom, 
@@ -44,6 +44,87 @@ import AuthModal from "@/components/AuthModal";
 import { auth, getUserTier, upgradeUserTier } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import AIDoubtSolver from "@/components/AIDoubtSolver";
+
+function AnimatedStat({ num, label }) {
+  const [value, setValue] = useState("");
+  const elementRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          let target = 0;
+          let prefix = "";
+          let suffix = "";
+          
+          if (num === "10,000+") {
+            target = 10000;
+            suffix = "+";
+          } else if (num === "50+") {
+            target = 50;
+            suffix = "+";
+          } else if (num === "₹99") {
+            target = 99;
+            prefix = "₹";
+          } else if (num === "4.9★") {
+            target = 4.9;
+            suffix = "★";
+          }
+          
+          let current = 0;
+          const duration = 1200; // ms
+          const stepTime = 16; // ~60fps
+          const steps = duration / stepTime;
+          const increment = target / steps;
+          
+          const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+              clearInterval(timer);
+              setValue(num);
+            } else {
+              if (target === 4.9) {
+                setValue(`${prefix}${current.toFixed(1)}${suffix}`);
+              } else if (target === 10000) {
+                setValue(`${prefix}${Math.floor(current).toLocaleString()}${suffix}`);
+              } else {
+                setValue(`${prefix}${Math.floor(current)}${suffix}`);
+              }
+            }
+          }, stepTime);
+          
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    
+    if (elementRef.current) {
+      observer.observe(elementRef.current);
+    }
+    
+    return () => observer.disconnect();
+  }, [num]);
+
+  return (
+    <div ref={elementRef} className="space-y-1">
+      <span
+        className="block text-2xl md:text-3xl font-extrabold"
+        style={{
+          fontFamily: "var(--font-display, 'Orbitron', sans-serif)",
+          color: "#E8A020",
+          textShadow: "0 0 18px rgba(232,160,32,0.45)",
+        }}
+      >
+        {value || num}
+      </span>
+      <span className="block text-[10px] font-mono tracking-widest uppercase" style={{ color: "#8888AA" }}>
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -110,6 +191,28 @@ export default function Home() {
     window.addEventListener("mousemove", updateMousePos);
     return () => window.removeEventListener("mousemove", updateMousePos);
   }, []);
+
+  // Scroll reveal Intersection Observer wiring (PDR)
+  useEffect(() => {
+    if (loading) return;
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: "0px 0px -50px 0px" }
+    );
+
+    const scrollElements = document.querySelectorAll(".reveal-on-scroll, .strikethrough-line");
+    scrollElements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, [loading]);
 
   const handleLogout = async () => {
     try {
@@ -230,18 +333,18 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative min-h-screen text-[#f8fafc] bg-[#030303] overflow-hidden select-none">
+    <div className="relative min-h-screen text-[#F0F0FF] bg-[#00000A] overflow-hidden select-none">
       
-      {/* Global Cursor Glow */}
-      <div 
-        className="fixed w-[500px] h-[500px] rounded-full bg-orange-500/3 pointer-events-none -translate-x-1/2 -translate-y-1/2 filter blur-[130px] transition-all duration-300 z-30"
-        style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px` }}
+      {/* Global Cursor Glow — amber PDR */}
+      <div
+        className="fixed w-[520px] h-[520px] rounded-full pointer-events-none -translate-x-1/2 -translate-y-1/2 filter blur-[140px] transition-all duration-300 z-30"
+        style={{ left: `${mousePos.x}px`, top: `${mousePos.y}px`, background: "rgba(232,160,32,0.04)" }}
       />
 
       {/* Background Starfield and Accretion Disk Black Hole */}
       {!loading && (
         <>
-          <SpaceBackground />
+          <SpaceBackground showBlackhole={true} />
           
           <Navbar 
             onAuthClick={triggerAuth} 
@@ -249,17 +352,18 @@ export default function Home() {
             onLogout={handleLogout}
           />
 
-          {/* Floating LaTeX Math Formulas Layer */}
+          {/* Floating LaTeX Math Formulas Layer — amber/gold tones */}
           <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
             {formulas.map((form, i) => (
               <div
                 key={i}
-                className="absolute font-mono text-xs text-sky-400/25 tracking-wider select-none animate-float-math"
+                className="absolute font-mono text-xs tracking-wider select-none animate-float-math"
                 style={{
                   top: form.top,
                   left: form.left,
                   right: form.right,
                   animationDelay: `${form.delay}s`,
+                  color: i % 2 === 0 ? "rgba(232,160,32,0.20)" : "rgba(123,94,167,0.22)",
                 }}
               >
                 {form.text}
@@ -273,79 +377,127 @@ export default function Home() {
             <section className="relative min-h-screen flex flex-col justify-center px-6 md:px-12 pt-28 pb-16 max-w-7xl mx-auto overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
                 
-                {/* Hero Wording & CTA */}
-                <div className="lg:col-span-7 space-y-6 text-left relative z-20">
-                  
-                  <motion.div 
+                {/* Hero Wording & CTA — PDR Interstellar Cosmic */}
+                <div className="lg:col-span-7 space-y-7 text-left relative z-20">
+
+                  <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-500/20 bg-orange-500/5 backdrop-blur-md shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md"
+                    style={{
+                      border: "1px solid rgba(232,160,32,0.25)",
+                      background: "rgba(232,160,32,0.07)",
+                      boxShadow: "0 0 18px rgba(232,160,32,0.12)",
+                    }}
                   >
-                    <GraduationCap className="w-3.5 h-3.5 text-orange-400 animate-pulse" />
-                    <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-orange-400">
-                      PREMIUM JEE & NEET STUDY PORTAL
+                    <Atom className="w-3.5 h-3.5 animate-pulse" style={{ color: "#E8A020" }} />
+                    <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase" style={{ color: "#E8A020" }}>
+                      PREMIUM JEE &amp; NEET STUDY PORTAL
                     </span>
                   </motion.div>
 
-                  <motion.h1 
-                    initial={{ opacity: 0, y: 20 }}
+                  <motion.h1
+                    initial={{ opacity: 0, y: 24 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.1 }}
-                    className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl tracking-tight leading-[1.05]"
+                    className="font-extrabold leading-[1.05] tracking-tight"
+                    style={{
+                      fontFamily: "var(--font-display, 'Orbitron', sans-serif)",
+                      fontSize: "clamp(2.2rem, 5vw, 4rem)",
+                      color: "#F0F0FF",
+                      textShadow: "0 0 40px rgba(232,160,32,0.2)",
+                    }}
                   >
-                    Master Physics <br />
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-amber-400 to-sky-400 text-glow">
-                      Like Never Before
+                    The Universe of<br />
+                    JEE Physics.{" "}
+                    <span
+                      style={{
+                        backgroundImage: "linear-gradient(135deg, #E8A020, #FF6B35, #C4A8F0)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      One Vault.
                     </span>
                   </motion.h1>
 
-                  <motion.p 
+                  <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
-                    className="max-w-xl text-sm md:text-base text-zinc-400 font-medium leading-relaxed"
+                    className="max-w-xl text-base md:text-lg font-medium leading-relaxed"
+                    style={{ color: "#8888AA" }}
                   >
-                    Elite notes, textbooks, and AI-powered learning for serious students.
+                    Books. Timer. Doubt Solver. Tracker. Strategies.<br />
+                    <span style={{ color: "#F0F0FF", fontWeight: 700 }}>All at ₹99/month.</span>
                   </motion.p>
 
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3 }}
-                    className="flex flex-wrap items-center gap-4 pt-3"
+                    className="flex flex-wrap items-center gap-4 pt-2"
                   >
+                    {/* Primary CTA — amber gradient pill (PDR) */}
                     <a
                       href="#pricing"
-                      className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold text-xs uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-102 flex items-center gap-2"
+                      className="flex items-center gap-2 font-bold text-sm uppercase tracking-wider text-white cursor-pointer transition-all hover:scale-105"
+                      style={{
+                        background: "linear-gradient(135deg, #E8A020, #FF6B35)",
+                        borderRadius: "50px",
+                        padding: "16px 38px",
+                        boxShadow: "0 0 22px rgba(232,160,32,0.45)",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 0 40px rgba(232,160,32,0.7)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 0 22px rgba(232,160,32,0.45)"; }}
                     >
-                      Start Free Trial <ChevronRight className="w-4 h-4" />
+                      Enter the Vault <ArrowRight className="w-4 h-4" />
                     </a>
-                    
+
+                    {/* Secondary CTA — ghost amber border */}
                     <a
-                      href="#notes"
-                      className="px-6 py-3.5 rounded-xl border border-white/10 hover:border-white/20 bg-white/5 hover:bg-white/10 text-white font-semibold text-xs uppercase tracking-wider cursor-pointer transition-all"
+                      href="#features"
+                      className="flex items-center gap-2 font-semibold text-sm uppercase tracking-wider cursor-pointer transition-all"
+                      style={{
+                        border: "1px solid #E8A020",
+                        color: "#E8A020",
+                        borderRadius: "50px",
+                        padding: "15px 32px",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(232,160,32,0.10)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      Explore Notes
+                      See What&apos;s Inside
                     </a>
                   </motion.div>
 
-                  <motion.div 
+                  {/* Hero mini-stats */}
+                  <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 1.0, delay: 0.5 }}
-                    className="grid grid-cols-3 gap-6 pt-10 border-t border-white/5 max-w-lg"
+                    className="grid grid-cols-3 gap-6 pt-8 max-w-lg"
+                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
                   >
                     {[
-                      { val: "15,000+", label: "Selections Secured" },
-                      { val: "99.98", label: "Top Percentile" },
-                      { val: "24/7", label: "AI Doubt Assist" },
+                      { val: "10,000+", label: "Students" },
+                      { val: "₹99",     label: "Per Month" },
+                      { val: "24/7",    label: "AI Support" },
                     ].map((stat) => (
                       <div key={stat.label} className="space-y-1">
-                        <span className="block font-display font-extrabold text-lg sm:text-xl text-white text-glow">
+                        <span
+                          className="block font-extrabold text-xl"
+                          style={{
+                            fontFamily: "var(--font-display, 'Orbitron', sans-serif)",
+                            color: "#E8A020",
+                            textShadow: "0 0 12px rgba(232,160,32,0.4)",
+                          }}
+                        >
                           {stat.val}
                         </span>
-                        <span className="block text-[9px] font-mono tracking-widest text-zinc-500 uppercase">
+                        <span className="block text-[9px] font-mono tracking-widest uppercase" style={{ color: "#8888AA" }}>
                           {stat.label}
                         </span>
                       </div>
@@ -470,231 +622,156 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#030303] to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-24 pointer-events-none" style={{ background: "linear-gradient(to top, #00000A, transparent)" }} />
             </section>
 
-            {/* 2. INFINITE ACHIEVEMENTS RUNNING MARQUEE */}
-            <div className="relative py-8 bg-black/60 border-y border-white/5 overflow-hidden z-25">
-              <div className="flex whitespace-nowrap overflow-hidden">
-                <div className="flex gap-16 text-xs font-mono tracking-widest text-zinc-400 uppercase animate-marquee">
+            {/* 2. STATS BAR (PDR SPEC) */}
+            <div
+              className="relative py-9 border-y overflow-hidden z-25 reveal-on-scroll"
+              style={{
+                background: "rgba(232,160,32,0.04)",
+                borderColor: "rgba(232,160,32,0.15)",
+              }}
+            >
+              <div className="max-w-4xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                {[
+                  { num: "10,000+", label: "Students" },
+                  { num: "50+",     label: "JEE Books" },
+                  { num: "₹99",     label: "Only" },
+                  { num: "4.9★",    label: "Rating" },
+                ].map((s) => (
+                  <AnimatedStat key={s.label} num={s.num} label={s.label} />
+                ))}
+              </div>
+              {/* Marquee below stats */}
+              <div className="flex whitespace-nowrap overflow-hidden mt-7 border-t pt-5" style={{ borderColor: "rgba(232,160,32,0.10)" }}>
+                <div className="flex gap-16 text-xs font-mono tracking-widest uppercase animate-marquee" style={{ color: "#8888AA" }}>
                   {[...Array(4)].map((_, idx) => (
                     <span key={idx} className="flex gap-16">
-                      <span className="flex items-center gap-2">
-                        <Award className="w-4 h-4 text-orange-400" /> AIR 14 JEE ADVANCED 2025
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-violet-400 fill-violet-400/20" /> 99.98 PERCENTILE JEE MAINS
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <GraduationCap className="w-4 h-4 text-sky-400" /> AIR 42 NEET BIOLOGY SUCCESS
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Atom className="w-4 h-4 text-orange-400 animate-spin-slow" /> 15,000+ CLASS XI/XII CLASSROOM SUCCESS STORIES
-                      </span>
+                      <span className="flex items-center gap-2"><Award className="w-4 h-4" style={{ color: "#E8A020" }} /> AIR 14 JEE ADVANCED 2025</span>
+                      <span className="flex items-center gap-2"><Star className="w-4 h-4" style={{ color: "#7B5EA7", fill: "rgba(123,94,167,0.2)" }} /> 99.98 PERCENTILE JEE MAINS</span>
+                      <span className="flex items-center gap-2"><GraduationCap className="w-4 h-4" style={{ color: "#39D98A" }} /> AIR 42 NEET BIOLOGY SUCCESS</span>
+                      <span className="flex items-center gap-2"><Atom className="w-4 h-4 animate-spin-slow" style={{ color: "#FF6B35" }} /> 15,000+ CLASS XI/XII SUCCESS STORIES</span>
                     </span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* 3. EVERYTHING YOU NEED TO SCORE HIGHER - FEATURES SECTION */}
-            <section id="features" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
-              <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <span className="text-[10px] font-mono tracking-[0.25em] text-sky-400 uppercase font-bold">
+            {/* 3. FEATURES SECTION — PDR 6 CARDS */}
+            <section id="features" className="py-28 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
+              <div className="text-center max-w-2xl mx-auto mb-20 space-y-4">
+                <span className="text-[10px] font-mono tracking-[0.3em] uppercase font-bold" style={{ color: "#E8A020" }}>
                   STUDY FEATURES
                 </span>
-                <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
+                <h2
+                  className="font-extrabold text-3xl md:text-4xl"
+                  style={{
+                    fontFamily: "var(--font-display, 'Orbitron', sans-serif)",
+                    color: "#F0F0FF",
+                  }}
+                >
                   Everything You Need To Score Higher
                 </h2>
-                <p className="text-sm text-zinc-500 font-medium">
-                  We engineered our learning suite from the ground up to render massive cosmological behaviors with high frame stability.
+                <p className="text-sm font-medium" style={{ color: "#8888AA" }}>
+                  One cosmic vault with every tool serious JEE/NEET aspirants need — no switching tabs, no distractions.
                 </p>
               </div>
 
-              {/* Bento Grid Features Layout with Animated Hover Borders */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* 6 PDR Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+                {[
+                  {
+                    emoji: "📚",
+                    icon: "BookOpen",
+                    title: "JEE Book Library",
+                    desc: "HC Verma to DC Pandey — all in one vault. Organized chapter-wise with formula sheets and derivations.",
+                    href: "/dashboard?tab=library",
+                    cta: "Open Library",
+                  },
+                  {
+                    emoji: "🍅",
+                    icon: "Timer",
+                    title: "Pomodoro Timer",
+                    desc: "Study in focused bursts, beat procrastination. Circular countdown with Focus, Break, and Long Break modes.",
+                    href: "/dashboard?tab=command",
+                    cta: "Start Timer",
+                  },
+                  {
+                    emoji: "🤖",
+                    icon: "Sparkles",
+                    title: "AI Doubt Solver",
+                    desc: "Instant answers, no waiting for a tutor. Gemini-powered AI returns LaTeX derivations in seconds.",
+                    href: "/dashboard?tab=ai",
+                    cta: "Solve Doubts",
+                  },
+                  {
+                    emoji: "✅",
+                    icon: "ListTodo",
+                    title: "To-Do List",
+                    desc: "Plan your day, check it off, feel unstoppable. Tag by subject, prioritize by urgency, earn XP.",
+                    href: "/dashboard?tab=command",
+                    cta: "Plan Today",
+                  },
+                  {
+                    emoji: "📊",
+                    icon: "BarChart3",
+                    title: "Study Tracker",
+                    desc: "Watch your progress orbit higher every week. Weekly heatmap, streaks, and subject progress bars.",
+                    href: "/dashboard?tab=command",
+                    cta: "View Progress",
+                  },
+                  {
+                    emoji: "🧠",
+                    icon: "Trophy",
+                    title: "Study Strategies",
+                    desc: "Proven JEE toppers\' methods, inside the vault. Curated masterclass videos and revision blueprints.",
+                    href: "/dashboard?tab=strategies",
+                    cta: "Watch Strategies",
+                  },
+                ].map((card, idx) => (
+                  <a
+                    key={idx}
+                    href={card.href}
+                    className="pv-card p-8 flex flex-col justify-between min-h-[280px] group reveal-on-scroll"
+                    style={{ 
+                      textDecoration: "none",
+                      transitionDelay: `${idx * 100}ms`
+                    }}
+                  >
+                    {/* Icon container — 64px amber glow circle */}
+                    <div>
+                      <div
+                        className="w-16 h-16 rounded-full flex items-center justify-center text-2xl mb-6 transition-all duration-300"
+                        style={{
+                          background: "rgba(232,160,32,0.08)",
+                          border: "1px solid rgba(232,160,32,0.2)",
+                          boxShadow: "0 0 20px rgba(232,160,32,0.12)",
+                        }}
+                      >
+                        {card.emoji}
+                      </div>
+                      <h3
+                        className="font-bold text-xl mb-3 group-hover:text-[#E8A020] transition-colors"
+                        style={{
+                          fontFamily: "var(--font-display, 'Orbitron', sans-serif)",
+                          fontSize: "1.05rem",
+                          color: "#F0F0FF",
+                        }}
+                      >
+                        {card.title}
+                      </h3>
+                      <p className="text-sm leading-relaxed" style={{ color: "#8888AA" }}>
+                        {card.desc}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider mt-6 pt-5 transition-colors group-hover:text-[#F0F0FF]" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", color: "#E8A020" }}>
+                      {card.cta} <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </a>
+                ))}
+              </div>
                 
-                {/* Bento Card 1: Elite Physics Notes */}
-                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-orange-600/10 rounded-full blur-2xl group-hover:bg-orange-600/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(249,115,22,0.15)]">
-                    <GraduationCap className="w-5 h-5 text-orange-400" />
-                  </div>
-                  <div className="space-y-2 mt-8">
-                    <h4 className="font-display font-bold text-lg text-white">
-                      Elite Physics Notes
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                      Chapter-wise study notes, precise formula sheets, and core exam-focused derivations tailored for top scores.
-                    </p>
-                  </div>
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-orange-400 font-semibold group-hover:text-white transition-colors">
-                    <span>Access Notes</span>
-                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                  </div>
-                </div>
-
-                {/* Bento Card 2: Interactive Textbooks */}
-                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.15)]">
-                    <Atom className="w-5 h-5 text-sky-400" />
-                  </div>
-                  <div className="space-y-2 mt-8">
-                    <h4 className="font-display font-bold text-lg text-white">
-                      Interactive Textbooks
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                      Digital interactive access to full Physics, Chemistry, and Maths curricula loaded with vector coordinate tools.
-                    </p>
-                  </div>
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-sky-400 font-semibold group-hover:text-white transition-colors">
-                    <span>Open Textbooks</span>
-                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                  </div>
-                </div>
-
-                {/* Bento Card 3: 24/7 AI Support */}
-                <div className="animated-border rounded-2xl p-8 flex flex-col justify-between h-80 relative group overflow-hidden cursor-pointer">
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-violet-500/10 rounded-full blur-2xl group-hover:bg-violet-500/20 transition-colors" />
-                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.15)]">
-                    <Sparkles className="w-5 h-5 text-violet-400 animate-pulse" />
-                  </div>
-                  <div className="space-y-2 mt-8">
-                    <h4 className="font-display font-bold text-lg text-white">
-                      24/7 AI Support
-                    </h4>
-                    <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                      Solve any sub-topic doubt, get instant step-by-step formula explanations and structural conceptual breakdowns.
-                    </p>
-                  </div>
-                  <div className="pt-4 border-t border-white/5 flex items-center justify-between text-xs text-violet-400 font-semibold group-hover:text-white transition-colors">
-                    <span>Solve Doubts</span>
-                    <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Study Station Features — Row 2 */}
-              <div className="mt-8 space-y-4">
-                <div className="text-center mb-6">
-                  <span className="text-[9px] font-mono tracking-[0.2em] text-cyan-400 uppercase font-bold bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/15">
-                    🚀 NEW — STUDY COMMAND CENTER
-                  </span>
-                </div>
-
-                {/* Wide 2-col feature cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  {/* Pomodoro Focus Timer */}
-                  <a href="/dashboard" className="animated-border rounded-2xl p-8 flex gap-6 items-start relative group overflow-hidden cursor-pointer min-h-[200px]">
-                    <div className="absolute -right-12 -bottom-12 w-36 h-36 bg-cyan-500/8 rounded-full blur-3xl group-hover:bg-cyan-500/15 transition-colors" />
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(0,217,255,0.12)] group-hover:shadow-[0_0_25px_rgba(0,217,255,0.2)] transition-shadow">
-                        <Timer className="w-6 h-6 text-cyan-400" />
-                      </div>
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <h4 className="font-display font-bold text-lg text-white">
-                        Pomodoro Focus Timer
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                        Circular countdown timer with Focus, Break, and Long Break modes. Adjustable durations, auto-switching, and session tracking to maximize deep study flow.
-                      </p>
-                      <div className="flex items-center gap-3 pt-2">
-                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">25m Focus</span>
-                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">5m Break</span>
-                        <span className="text-[9px] font-mono bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/15">Auto-Cycle</span>
-                      </div>
-                    </div>
-                  </a>
-
-                  {/* Subject Progress Tracker */}
-                  <a href="/dashboard" className="animated-border rounded-2xl p-8 flex gap-6 items-start relative group overflow-hidden cursor-pointer min-h-[200px]">
-                    <div className="absolute -right-12 -bottom-12 w-36 h-36 bg-orange-500/8 rounded-full blur-3xl group-hover:bg-orange-500/15 transition-colors" />
-                    <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shadow-[0_0_20px_rgba(249,115,22,0.12)] group-hover:shadow-[0_0_25px_rgba(249,115,22,0.2)] transition-shadow">
-                        <Bookmark className="w-6 h-6 text-orange-400" />
-                      </div>
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <h4 className="font-display font-bold text-lg text-white">
-                        Subject Progress Tracker
-                      </h4>
-                      <p className="text-xs text-zinc-400 leading-relaxed font-medium">
-                        Track Physics, Chemistry, and Maths chapter-by-chapter. Expandable checklists with real-time progress bars and custom subject support.
-                      </p>
-                      <div className="flex items-center gap-3 pt-2">
-                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">54 Chapters</span>
-                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">3 Subjects</span>
-                        <span className="text-[9px] font-mono bg-orange-500/10 text-orange-400 px-2 py-0.5 rounded-full border border-orange-500/15">JEE/NEET</span>
-                      </div>
-                    </div>
-                  </a>
-
-                </div>
-
-                {/* 3-col feature cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                  {/* Smart Task Manager */}
-                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
-                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
-                    <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(52,211,153,0.12)]">
-                      <ListTodo className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div className="space-y-2 mt-5">
-                      <h4 className="font-display font-bold text-base text-white">Smart Task Manager</h4>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
-                        Prioritize study tasks with High/Med/Low urgency, tag by subject, and filter by status. Earn XP for every task you crush.
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-emerald-400 font-semibold group-hover:text-white transition-colors">
-                      <span>Open Tasks</span>
-                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                    </div>
-                  </a>
-
-                  {/* Study Analytics */}
-                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
-                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-colors" />
-                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.12)]">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div className="space-y-2 mt-5">
-                      <h4 className="font-display font-bold text-base text-white">Study Analytics</h4>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
-                        Weekly focus heatmap, session counts, total study hours, and subject distribution — all in one glance.
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-blue-400 font-semibold group-hover:text-white transition-colors">
-                      <span>View Analytics</span>
-                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                    </div>
-                  </a>
-
-                  {/* XP Gamification */}
-                  <a href="/dashboard" className="animated-border rounded-2xl p-7 flex flex-col justify-between h-64 relative group overflow-hidden cursor-pointer">
-                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-yellow-500/10 rounded-full blur-2xl group-hover:bg-yellow-500/20 transition-colors" />
-                    <div className="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.12)]">
-                      <Trophy className="w-5 h-5 text-yellow-400" />
-                    </div>
-                    <div className="space-y-2 mt-5">
-                      <h4 className="font-display font-bold text-base text-white">XP & Ranks System</h4>
-                      <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
-                        Earn XP for every session and task. Level up from Cadet to Singularity. Track streaks, focus grades, and daily goals.
-                      </p>
-                    </div>
-                    <div className="pt-3 border-t border-white/5 flex items-center justify-between text-xs text-yellow-400 font-semibold group-hover:text-white transition-colors">
-                      <span>Start Earning</span>
-                      <ArrowRight className="w-4 h-4 translate-x-0 group-hover:translate-x-1.5 transition-transform" />
-                    </div>
-                  </a>
-
-                </div>
-              </div>
-
             </section>
 
             {/* 4. HOLOGRAPHIC SYLLABUS & TEXTBOOKS CONSOLE (REPLACING THE TEXTBOOKS PNG) */}
@@ -722,9 +799,13 @@ export default function Home() {
                           onClick={() => setActiveSubj(sub)}
                           className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
                             activeSubj === sub 
-                              ? "bg-gradient-to-r from-orange-500 to-sky-400 text-white shadow-md shadow-orange-500/10" 
-                              : "text-zinc-500 hover:text-white"
+                              ? "text-white shadow-md" 
+                              : "text-[#8888AA] hover:text-white"
                           }`}
+                          style={activeSubj === sub ? {
+                            background: "linear-gradient(135deg, #E8A020, #FF6B35)",
+                            boxShadow: "0 0 12px rgba(232,160,32,0.25)",
+                          } : {}}
                         >
                           {sub}
                         </button>
@@ -888,8 +969,8 @@ export default function Home() {
 
             {/* 6. TRUSTED BY STUDENTS NATIONWIDE - REVIEWS SECTION (NO PROFILE IMAGES) */}
             <section id="reviews" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
-              <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <span className="text-[10px] font-mono tracking-[0.25em] text-orange-400 uppercase font-bold">
+              <div className="text-center max-w-2xl mx-auto mb-16 space-y-3 reveal-on-scroll">
+                <span className="text-[10px] font-mono tracking-[0.25em] uppercase font-bold" style={{ color: "#FF6B35" }}>
                   STUDENT TESTIMONIALS
                 </span>
                 <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
@@ -922,11 +1003,15 @@ export default function Home() {
                     rating: 5
                   }
                 ].map((rev, i) => (
-                  <div key={i} className="glass-panel glass-panel-hover rounded-2xl p-6 border border-white/5 flex flex-col justify-between text-left h-64 relative group overflow-hidden shadow-lg hover:shadow-orange-500/5">
+                  <div 
+                    key={i} 
+                    className="glass-panel glass-panel-hover rounded-2xl p-6 border border-white/5 flex flex-col justify-between text-left h-64 relative group overflow-hidden shadow-lg hover:shadow-orange-500/5 reveal-on-scroll"
+                    style={{ transitionDelay: `${i * 100}ms` }}
+                  >
                     <div className="space-y-4">
                       <div className="flex gap-1">
                         {[...Array(rev.rating)].map((_, sIdx) => (
-                          <Star key={sIdx} className="w-3.5 h-3.5 text-orange-400 fill-orange-400" />
+                          <Star key={sIdx} className="w-3.5 h-3.5" style={{ color: "#E8A020", fill: "#E8A020" }} />
                         ))}
                       </div>
                       
@@ -937,7 +1022,7 @@ export default function Home() {
 
                     <div className="pt-4 border-t border-white/5 mt-4">
                       <span className="block text-xs font-bold text-white">{rev.name}</span>
-                      <span className="block text-[9px] font-mono tracking-widest text-orange-400 uppercase font-semibold mt-0.5">
+                      <span className="block text-[9px] font-mono tracking-widest uppercase font-semibold mt-0.5" style={{ color: "#FF6B35" }}>
                         {rev.rank}
                       </span>
                     </div>
@@ -950,19 +1035,22 @@ export default function Home() {
             {/* 7. SECURE RAZORPAY BILLING GRID - THE PRICING SECTION (INTERSTELLAR GLOW CONTRAST) */}
             <section id="pricing" className="py-24 px-6 md:px-12 max-w-7xl mx-auto relative overflow-hidden">
               
-              {/* Dynamic Orange and Blue abstract glow spotlights in the background */}
-              <div className="absolute top-10 left-10 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[140px] pointer-events-none animate-pulse-slow" />
-              <div className="absolute bottom-10 right-10 w-[500px] h-[500px] bg-sky-600/10 rounded-full blur-[140px] pointer-events-none animate-pulse-slow" />
+              {/* Amber/violet glow spotlights (PDR) */}
+              <div className="absolute top-10 left-10 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none animate-pulse-slow" style={{ background: "rgba(232,160,32,0.08)" }} />
+              <div className="absolute bottom-10 right-10 w-[500px] h-[500px] rounded-full blur-[140px] pointer-events-none animate-pulse-slow" style={{ background: "rgba(123,94,167,0.08)" }} />
 
-              <div className="text-center max-w-2xl mx-auto mb-20 space-y-3 relative z-10">
-                <span className="text-[10px] font-mono tracking-[0.25em] text-orange-400 uppercase font-bold">
-                  STUDENT COCKPIT ACCESS
+              <div className="text-center max-w-2xl mx-auto mb-20 space-y-4 relative z-10">
+                <span className="text-[10px] font-mono tracking-[0.3em] uppercase font-bold" style={{ color: "#E8A020" }}>
+                  SECURE VAULT ACCESS
                 </span>
-                <h2 className="font-display font-extrabold text-3xl md:text-4xl text-white">
+                <h2
+                  className="font-extrabold text-3xl md:text-4xl"
+                  style={{ fontFamily: "var(--font-display, 'Orbitron', sans-serif)", color: "#F0F0FF" }}
+                >
                   Join the PhysicsVault Fleet
                 </h2>
-                <p className="text-sm text-zinc-500 font-medium">
-                  Unlock access to unlimited study notes, animated textbooks, and AI doubt solvers instantly.
+                <p className="text-sm font-medium" style={{ color: "#8888AA" }}>
+                  One vault, every tool. Cancel anytime. Start your 7-day free trial.
                 </p>
               </div>
 
@@ -974,40 +1062,46 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Pricing Cards - Highly contrasted Orange vs Blue glows */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto relative z-20">
                 
                 {/* CARD 1: ASPIRANT (ORANGE ACTIVE GLOW CARD) */}
                 <div 
-                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] cursor-pointer hover:shadow-[0_0_40px_rgba(249,115,22,0.15)] border-orange-500/20 transition-all duration-300"
-                  onClick={() => handlePayment("Aspirant", 200)}
+                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] cursor-pointer hover:shadow-[0_0_40px_rgba(232,160,32,0.15)] border-[#E8A020]/20 transition-all duration-300 reveal-on-scroll"
+                  onClick={() => handlePayment("Aspirant", 99)}
+                  style={{ transitionDelay: "0ms" }}
                 >
                   <div className="space-y-6">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] font-mono tracking-widest text-orange-400 uppercase font-semibold">
+                        <span className="text-[10px] font-mono tracking-widest uppercase font-semibold" style={{ color: "#FF6B35" }}>
                           STUDENT PASS
                         </span>
                         <h3 className="font-display font-extrabold text-3xl text-white mt-1">Aspirant</h3>
                         <p className="text-xs text-zinc-500 mt-1">Flexible monthly study cockpit</p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-orange-400/10 border border-orange-400/20 text-orange-400 uppercase tracking-widest">
-                        Launch Price
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-orange-400/10 border border-orange-400/20 text-orange-400 uppercase tracking-widest animate-pulse">
+                        🔥 Limited Time Offer
                       </span>
                     </div>
-
+ 
                     <div className="py-4 border-b border-white/5">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-zinc-600 line-through text-sm font-medium">₹299/mo</span>
-                        <span className="text-5xl font-display font-extrabold text-white">₹200</span>
-                        <span className="text-zinc-400 text-xs">/ month</span>
+                        <div className="relative inline-block mr-1">
+                          <span className="text-zinc-600 text-sm font-medium pr-1 font-mono">₹999/mo</span>
+                          <span className="absolute left-0 top-1/2 h-[2px] bg-red-500/80 -translate-y-1/2 strikethrough-line" />
+                        </div>
+                        <span
+                          className="text-5xl font-extrabold"
+                          style={{ fontFamily: "var(--font-display, 'Orbitron', sans-serif)", color: "#E8A020", textShadow: "0 0 20px rgba(232,160,32,0.4)" }}
+                        >₹99</span>
+                        <span className="text-xs" style={{ color: "#8888AA" }}>/ month</span>
                       </div>
-                      <span className="block text-[10px] font-mono text-zinc-500 mt-2 uppercase tracking-wider">
+                      <span className="block text-[10px] font-mono mt-2 uppercase tracking-wider" style={{ color: "#8888AA" }}>
                         Cancel anytime · Includes 7-Day Free Trial
                       </span>
                     </div>
-
-                    <ul className="space-y-4 text-xs text-zinc-400">
+ 
+                    <ul className="space-y-4 text-xs" style={{ color: "#8888AA" }}>
                       {[
                         "Interactive syllabus models (Physics, Chemistry, Maths)",
                         "High-yield digital notes and textbooks",
@@ -1016,56 +1110,77 @@ export default function Home() {
                         "Standard student dashboard support",
                       ].map((feat) => (
                         <li key={feat} className="flex items-center gap-3">
-                          <div className="w-4.5 h-4.5 rounded-full bg-orange-400/10 flex items-center justify-center shrink-0 border border-orange-400/20">
-                            <Check className="w-3 h-3 text-orange-400" />
+                          <div
+                            className="w-4.5 h-4.5 rounded-full flex items-center justify-center shrink-0"
+                            style={{ background: "rgba(232,160,32,0.10)", border: "1px solid rgba(232,160,32,0.25)" }}
+                          >
+                            <Check className="w-3 h-3" style={{ color: "#E8A020" }} />
                           </div>
                           <span className="font-medium">{feat}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-
+ 
                   <div className="mt-8 pt-6 border-t border-white/5">
-                    <button className="w-full py-4 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-orange-500/10">
-                      Start Now
-                      <ArrowRight className="w-3.5 h-3.5" />
+                    <button
+                      className="w-full py-4 rounded-full font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+                      style={{
+                        background: "linear-gradient(135deg, #E8A020, #FF6B35)",
+                        color: "white",
+                        boxShadow: "0 0 22px rgba(232,160,32,0.4)",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 0 40px rgba(232,160,32,0.65)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 0 22px rgba(232,160,32,0.4)"; }}
+                    >
+                      Start for ₹99 <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-
-                {/* CARD 2: TITAN (BLUE/PURPLE GLOW CARD) */}
+ 
+                {/* CARD 2: TITAN (VIOLET/PURPLE ACTIVE GLOW CARD) */}
                 <div 
-                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] relative overflow-hidden cursor-pointer hover:shadow-[0_0_40px_rgba(56,189,248,0.15)] border-sky-500/20 transition-all duration-300"
-                  onClick={() => handlePayment("Titan", 1500)}
+                  className="animated-border rounded-3xl p-8 flex flex-col justify-between min-h-[480px] relative overflow-hidden cursor-pointer hover:shadow-[0_0_40px_rgba(123,94,167,0.25)] border-[#7B5EA7]/20 transition-all duration-300 reveal-on-scroll"
+                  onClick={() => handlePayment("Titan", 1000)}
+                  style={{ transitionDelay: "150ms" }}
                 >
                   <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-violet-500 to-transparent" />
                   <div className="absolute -right-16 -top-16 w-36 h-36 bg-violet-600/10 rounded-full blur-2xl pointer-events-none" />
-
+ 
                   <div className="space-y-6">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="text-[10px] font-mono tracking-widest text-sky-400 uppercase font-semibold">
+                        <span className="text-[10px] font-mono tracking-widest uppercase font-semibold" style={{ color: "#7B5EA7" }}>
                           COMMANDER PASS
                         </span>
                         <h3 className="font-display font-extrabold text-3xl text-white mt-1">Titan</h3>
                         <p className="text-xs text-zinc-500 mt-1">Ultimate annual study station</p>
                       </div>
-                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-sky-400/15 border border-sky-400/30 text-sky-400 uppercase tracking-widest shadow-md shadow-sky-500/10">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-bold px-2.5 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-[#7B5EA7] uppercase tracking-widest shadow-md shadow-violet-500/10">
                         Founding Member lock
                       </span>
                     </div>
-
+ 
                     <div className="py-4 border-b border-white/5">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-zinc-600 line-through text-sm font-medium">₹799/mo</span>
-                        <span className="text-5xl font-display font-extrabold text-white">₹1,500</span>
-                        <span className="text-zinc-400 text-xs">/ year</span>
+                        <div className="relative inline-block mr-1">
+                          <span className="text-zinc-600 text-sm font-medium pr-1 font-mono">₹9,999/yr</span>
+                          <span className="absolute left-0 top-1/2 h-[2px] bg-red-500/80 -translate-y-1/2 strikethrough-line" />
+                        </div>
+                        <span
+                          className="text-5xl font-extrabold"
+                          style={{ fontFamily: "var(--font-display, 'Orbitron', sans-serif)", color: "#F0F0FF" }}
+                        >₹1,000</span>
+                        <span className="text-xs" style={{ color: "#8888AA" }}>/ year</span>
                       </div>
-                      <span className="inline-block text-[10px] font-mono text-sky-400 font-bold bg-sky-500/10 border border-sky-500/20 px-2.5 py-0.5 rounded-md mt-2 uppercase tracking-wider">
-                        ₹125/mo · Save 37% Overall
+                      <span
+                        className="inline-block text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md mt-2 uppercase tracking-wider"
+                        style={{ color: "#E8A020", background: "rgba(232,160,32,0.08)", border: "1px solid rgba(232,160,32,0.2)" }}
+                      >
+                        ₹83/mo · Save 16% over monthly plan
                       </span>
                     </div>
-
+ 
                     <ul className="space-y-4 text-xs text-zinc-400">
                       {[
                         "Unlimited orbital syllabus models & simulations",
@@ -1076,23 +1191,29 @@ export default function Home() {
                         "Exclusive early-access academic test series",
                       ].map((feat) => (
                         <li key={feat} className="flex items-center gap-3">
-                          <div className="w-4.5 h-4.5 rounded-full bg-sky-400/10 flex items-center justify-center shrink-0 border border-sky-400/20">
-                            <Check className="w-3 h-3 text-sky-400" />
+                          <div className="w-4.5 h-4.5 rounded-full bg-violet-500/10 flex items-center justify-center shrink-0 border border-violet-500/20">
+                            <Check className="w-3 h-3 text-violet-400" />
                           </div>
                           <span className="font-medium text-zinc-300">{feat}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
-
+ 
                   <div className="mt-8 pt-6 border-t border-white/5">
-                    <button className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-400 to-sky-400 text-white font-bold text-xs uppercase tracking-wider transition-all duration-300 hover:scale-102 flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-orange-500/25">
-                      Go Titan
-                      <ArrowRight className="w-3.5 h-3.5" />
+                    <button
+                      className="w-full py-4 rounded-full font-bold text-sm uppercase tracking-wider transition-all hover:scale-105 flex items-center justify-center gap-2 cursor-pointer"
+                      style={{
+                        background: "linear-gradient(135deg, #7B5EA7, #E8A020)",
+                        color: "white",
+                        boxShadow: "0 0 20px rgba(123,94,167,0.35)",
+                      }}
+                    >
+                      Go Titan <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
-
+ 
               </div>
 
               <div className="text-center mt-12 text-[10px] text-zinc-500 tracking-wider font-mono">
@@ -1105,11 +1226,14 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <div className="space-y-4 col-span-1 md:col-span-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-orange-500 to-sky-400 flex items-center justify-center">
-                      <span className="font-display font-bold text-white text-xs">PV</span>
+                    <div
+                      className="w-7 h-7 rounded-lg flex items-center justify-center"
+                      style={{ background: "linear-gradient(135deg, #E8A020, #FF6B35)", boxShadow: "0 0 12px rgba(232,160,32,0.3)" }}
+                    >
+                      <span className="font-bold text-white text-xs">⚛</span>
                     </div>
-                    <span className="font-display font-extrabold text-base tracking-wider text-white">
-                      PHYSICS<span className="text-orange-400 font-medium">VAULT</span>
+                    <span className="font-extrabold text-base tracking-wider" style={{ fontFamily: "var(--font-display, 'Orbitron', sans-serif)" }}>
+                      <span style={{ color: "#F0F0FF" }}>PHYSICS</span><span style={{ color: "#E8A020" }}>VAULT</span>
                     </span>
                   </div>
                   <p className="text-xs text-zinc-400 max-w-sm leading-relaxed font-sans">
@@ -1121,10 +1245,10 @@ export default function Home() {
                   <h5 className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
                     ACADEMICS
                   </h5>
-                  <ul className="space-y-2 text-xs text-zinc-400 font-sans">
-                    <li><a href="#" className="hover:text-white transition-colors">Study Cockpit</a></li>
-                    <li><a href="#notes" className="hover:text-white transition-colors">Interactive Syllabus</a></li>
-                    <li><a href="#pricing" className="hover:text-white transition-colors">Pricing pass plans</a></li>
+                <ul className="space-y-2 text-xs font-sans" style={{ color: "#8888AA" }}>
+                    <li><a href="#" className="transition-colors" style={{ color: "#8888AA" }} onMouseEnter={e => e.currentTarget.style.color="#E8A020"} onMouseLeave={e => e.currentTarget.style.color="#8888AA"}>Study Cockpit</a></li>
+                    <li><a href="#notes" className="transition-colors" style={{ color: "#8888AA" }} onMouseEnter={e => e.currentTarget.style.color="#E8A020"} onMouseLeave={e => e.currentTarget.style.color="#8888AA"}>Interactive Syllabus</a></li>
+                    <li><a href="#pricing" className="transition-colors" style={{ color: "#8888AA" }} onMouseEnter={e => e.currentTarget.style.color="#E8A020"} onMouseLeave={e => e.currentTarget.style.color="#8888AA"}>Pricing Plans</a></li>
                   </ul>
                 </div>
 

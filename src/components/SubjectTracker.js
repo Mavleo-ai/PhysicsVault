@@ -68,13 +68,13 @@ export default function SubjectTracker({ studyData, onUpdate }) {
         </span>
         <button
           onClick={() => setShowAddSubject(!showAddSubject)}
-          className="text-[9px] font-mono text-sky-400 font-bold bg-sky-500/10 px-2.5 py-1 rounded-full hover:bg-sky-500/20 transition-all cursor-pointer flex items-center gap-1 border border-sky-500/20"
+          className="text-[9px] font-mono text-amber-400 font-bold bg-amber-500/10 px-2.5 py-1 rounded-full hover:bg-amber-500/20 transition-all cursor-pointer flex items-center gap-1 border border-amber-500/20"
         >
           <Plus className="w-3 h-3" />
           ADD
         </button>
       </div>
-
+ 
       {/* Add Subject Input */}
       {showAddSubject && (
         <div className="flex gap-2 p-3 bg-white/3 border border-white/5 rounded-xl animate-in">
@@ -89,7 +89,7 @@ export default function SubjectTracker({ studyData, onUpdate }) {
           />
           <button
             onClick={addSubject}
-            className="px-3 py-1 bg-sky-500/20 text-sky-400 text-[10px] font-bold rounded-lg hover:bg-sky-500/30 transition-all cursor-pointer"
+            className="px-3 py-1 bg-amber-500/20 text-amber-400 text-[10px] font-bold rounded-lg hover:bg-amber-500/30 transition-all cursor-pointer"
           >
             Add
           </button>

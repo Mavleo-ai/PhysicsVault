@@ -124,12 +124,12 @@ export default function DashboardPage() {
   // Loading screen
   if (loading || !studyData) {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#00000A" }}>
         <div className="relative">
-          <div className="w-12 h-12 rounded-full border-2 border-cyan-500/30 border-t-cyan-400 animate-spin" />
-          <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-violet-500/20 border-b-violet-400 animate-spin" style={{ animationDirection: "reverse", animationDuration: "1.5s" }} />
+          <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: "rgba(232,160,32,0.3)", borderTopColor: "#E8A020" }} />
+          <div className="absolute inset-0 w-12 h-12 rounded-full border-2 border-b-transparent animate-spin" style={{ borderColor: "rgba(123,94,167,0.2)", borderBottomColor: "#7B5EA7", animationDirection: "reverse", animationDuration: "1.5s" }} />
         </div>
-        <span className="text-xs text-cyan-400/70 font-mono tracking-widest uppercase">
+        <span className="text-xs font-mono tracking-widest uppercase" style={{ color: "rgba(232,160,32,0.7)" }}>
           Initializing Study Station...
         </span>
       </div>
@@ -231,9 +231,13 @@ export default function DashboardPage() {
 
             {/* Action buttons */}
             <div className="space-y-3 pt-2">
-              <a
+        <a
                 href="/#pricing"
-                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-pink-600 border border-orange-500/20 text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:from-orange-500 hover:to-pink-700 transition-all cursor-pointer text-center shadow-[0_0_20px_rgba(249,115,22,0.15)] hover:scale-[1.02]"
+                className="w-full flex items-center justify-center gap-1.5 py-3 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider text-white hover:scale-105 transition-all cursor-pointer text-center"
+                style={{
+                  background: "linear-gradient(135deg, #E8A020, #FF6B35)",
+                  boxShadow: "0 0 20px rgba(232,160,32,0.3)",
+                }}
               >
                 Upgrade Tier Now
               </a>
@@ -297,9 +301,15 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("command")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "command"
-                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_12px_rgba(0,217,255,0.08)]"
+                ? "text-white border"
                 : "text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
+            style={activeTab === "command" ? {
+              background: "rgba(232,160,32,0.10)",
+              borderColor: "rgba(232,160,32,0.25)",
+              color: "#E8A020",
+              boxShadow: "0 0 12px rgba(232,160,32,0.08)",
+            } : {}}
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             Command Center
@@ -308,9 +318,15 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("library")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "library"
-                ? "bg-sky-500/10 text-sky-400 border border-sky-500/20 shadow-[0_0_12px_rgba(56,189,248,0.08)]"
+                ? "text-white border"
                 : "text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
+            style={activeTab === "library" ? {
+              background: "rgba(232,160,32,0.10)",
+              borderColor: "rgba(232,160,32,0.25)",
+              color: "#E8A020",
+              boxShadow: "0 0 12px rgba(232,160,32,0.08)",
+            } : {}}
           >
             <BookOpen className="w-3.5 h-3.5" />
             Library
@@ -319,9 +335,15 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("ai")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "ai"
-                ? "bg-violet-500/10 text-violet-400 border border-violet-500/20 shadow-[0_0_12px_rgba(139,92,246,0.08)]"
+                ? "text-white border"
                 : "text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
+            style={activeTab === "ai" ? {
+              background: "rgba(232,160,32,0.10)",
+              borderColor: "rgba(232,160,32,0.25)",
+              color: "#E8A020",
+              boxShadow: "0 0 12px rgba(232,160,32,0.08)",
+            } : {}}
           >
             <span className="text-sm">🤖</span>
             AI Solver
@@ -330,15 +352,21 @@ export default function DashboardPage() {
             onClick={() => setActiveTab("strategies")}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-[10px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeTab === "strategies"
-                ? "bg-orange-500/10 text-orange-400 border border-orange-500/20 shadow-[0_0_12px_rgba(249,115,22,0.08)]"
+                ? "text-white border"
                 : "text-zinc-500 hover:text-zinc-300 border border-transparent"
             }`}
+            style={activeTab === "strategies" ? {
+              background: "rgba(232,160,32,0.10)",
+              borderColor: "rgba(232,160,32,0.25)",
+              color: "#E8A020",
+              boxShadow: "0 0 12px rgba(232,160,32,0.08)",
+            } : {}}
           >
             <span className="text-sm">📺</span>
             Strategies
           </button>
         </div>
-
+ 
         {/* Right: User + Logout */}
         <div className="flex items-center gap-3">
           <span className="hidden md:flex text-[10px] text-zinc-400 items-center gap-1.5 bg-white/[0.03] border border-white/[0.06] px-3 py-1.5 rounded-full">
@@ -356,7 +384,7 @@ export default function DashboardPage() {
               {user.tier}
             </span>
           </span>
-
+ 
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-white border border-white/[0.06] px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
@@ -367,16 +395,21 @@ export default function DashboardPage() {
         </div>
       </header>
       </div>
-
+ 
       {/* Mobile Tab Switcher */}
       <div className="md:hidden relative z-10 flex flex-wrap gap-1 mx-4 mt-3 bg-white/[0.03] p-1 rounded-xl border border-white/5">
         <button
           onClick={() => setActiveTab("command")}
           className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === "command"
-              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+              ? "text-white border"
               : "text-zinc-500 border border-transparent"
           }`}
+          style={activeTab === "command" ? {
+            background: "rgba(232,160,32,0.10)",
+            borderColor: "rgba(232,160,32,0.25)",
+            color: "#E8A020",
+          } : {}}
         >
           Command Center
         </button>
@@ -384,9 +417,14 @@ export default function DashboardPage() {
           onClick={() => setActiveTab("library")}
           className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === "library"
-              ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+              ? "text-white border"
               : "text-zinc-500 border border-transparent"
           }`}
+          style={activeTab === "library" ? {
+            background: "rgba(232,160,32,0.10)",
+            borderColor: "rgba(232,160,32,0.25)",
+            color: "#E8A020",
+          } : {}}
         >
           Library
         </button>
@@ -394,9 +432,14 @@ export default function DashboardPage() {
           onClick={() => setActiveTab("ai")}
           className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === "ai"
-              ? "bg-violet-500/10 text-violet-400 border border-violet-500/20"
+              ? "text-white border"
               : "text-zinc-500 border border-transparent"
           }`}
+          style={activeTab === "ai" ? {
+            background: "rgba(232,160,32,0.10)",
+            borderColor: "rgba(232,160,32,0.25)",
+            color: "#E8A020",
+          } : {}}
         >
           AI Solver
         </button>
@@ -404,9 +447,14 @@ export default function DashboardPage() {
           onClick={() => setActiveTab("strategies")}
           className={`flex-1 min-w-[70px] flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer ${
             activeTab === "strategies"
-              ? "bg-orange-500/10 text-orange-400 border border-orange-500/20"
+              ? "text-white border"
               : "text-zinc-500 border border-transparent"
           }`}
+          style={activeTab === "strategies" ? {
+            background: "rgba(232,160,32,0.10)",
+            borderColor: "rgba(232,160,32,0.25)",
+            color: "#E8A020",
+          } : {}}
         >
           Strategies
         </button>
