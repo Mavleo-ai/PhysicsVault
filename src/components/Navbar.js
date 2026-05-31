@@ -97,7 +97,7 @@ export default function Navbar({ onAuthClick, user, onLogout }) {
           </a>
 
           {/* Center Nav Links */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden md:flex items-center gap-12 md:mx-16">
             {navLinks.map((link) => (
               <a
                 key={link.label}
