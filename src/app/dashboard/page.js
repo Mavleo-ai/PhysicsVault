@@ -24,6 +24,8 @@ import {
   ShieldCheck,
   LayoutDashboard,
   BookOpen,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 
 import DriveResourcesPanel from "@/components/DriveResourcesPanel";
@@ -54,6 +56,32 @@ export default function DashboardPage() {
   const [studyData, setStudyData] = useState(null);
   const [activeTab, setActiveTab] = useState("command"); // command | ai | library
   const [activeVideoId, setActiveVideoId] = useState("3fKXzR0IDRU");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Synchronize fullscreen state with native ESC exits
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (typeof window === "undefined") return;
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => {
+        setIsFullscreen(true);
+      }).catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen().then(() => {
+        setIsFullscreen(false);
+      });
+    }
+  };
 
   // Firebase auth listener
   useEffect(() => {
@@ -185,6 +213,15 @@ export default function DashboardPage() {
                 {user.tier || "free"}
               </span>
             </span>
+
+            <button
+              onClick={toggleFullscreen}
+              className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-white border border-white/[0.06] px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
+              title="Toggle Focus Fullscreen"
+            >
+              {isFullscreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+              <span className="hidden sm:inline">{isFullscreen ? "Exit Focus" : "Focus Mode"}</span>
+            </button>
 
             <button
               onClick={handleLogout}
@@ -385,6 +422,15 @@ export default function DashboardPage() {
             </span>
           </span>
  
+          <button
+            onClick={toggleFullscreen}
+            className="flex items-center gap-1.5 text-[10px] text-[#E8A020] hover:text-white border border-[#E8A020]/30 hover:border-amber-400 px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-amber-500/10 transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
+            title="Toggle Focus Fullscreen"
+          >
+            {isFullscreen ? <Minimize2 className="w-3 h-3 text-[#FF6B35]" /> : <Maximize2 className="w-3 h-3 text-[#E8A020]" />}
+            <span className="hidden sm:inline">{isFullscreen ? "Exit Focus" : "Focus Mode"}</span>
+          </button>
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-[10px] text-zinc-400 hover:text-white border border-white/[0.06] px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-red-500/10 hover:border-red-500/20 transition-all cursor-pointer font-mono font-bold uppercase tracking-wider"
