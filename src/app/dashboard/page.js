@@ -198,9 +198,7 @@ export default function DashboardPage() {
                 <span className="font-display font-extrabold text-sm tracking-wider leading-none">
                   PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
                 </span>
-                <span className="text-[6px] font-mono tracking-widest text-zinc-500 uppercase mt-0.5">
-                  Designed by Leo Sandal
-                </span>
+
               </div>
             </a>
 
@@ -308,7 +306,7 @@ export default function DashboardPage() {
               <span>Sim System: Active</span>
             </div>
             <div className="flex items-center gap-1.5">
-              Designed by <span className="text-white font-extrabold bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent text-glow">Leo Sandal</span>
+              FOUNDER &amp; CEO <span className="text-white font-extrabold bg-gradient-to-r from-orange-400 via-amber-300 to-sky-400 bg-clip-text text-transparent text-glow">Leo Sandal</span>
             </div>
             <div className="flex items-center gap-2">
               <span>SECURE TERMINAL</span>
@@ -326,9 +324,7 @@ export default function DashboardPage() {
               <span className="font-display font-extrabold text-sm tracking-wider leading-none">
                 PHYSICS<span className="text-sky-400 font-medium">VAULT</span>
               </span>
-              <span className="text-[6px] font-mono tracking-widest text-zinc-500 uppercase mt-0.5">
-                Designed by Leo Sandal
-              </span>
+
             </div>
           </a>
 

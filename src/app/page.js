@@ -138,6 +138,20 @@ export default function Home() {
   // Mouse coordinates state for glow
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+  const [daysLeft2027, setDaysLeft2027] = useState(0);
+
+  useEffect(() => {
+    const target = new Date("2027-04-13T00:00:00+05:30");
+    const updateDays = () => {
+      const now = new Date();
+      const diff = target.getTime() - now.getTime();
+      setDaysLeft2027(diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0);
+    };
+    updateDays();
+    const interval = setInterval(updateDays, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Live AI Doubt Solver is handled natively inside the AIDoubtSolver component
 
   // Payments and Receipt details states
@@ -380,22 +394,42 @@ export default function Home() {
                 {/* Hero Wording & CTA — PDR Interstellar Cosmic */}
                 <div className="lg:col-span-7 space-y-7 text-left relative z-20">
 
-                  <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md"
-                    style={{
-                      border: "1px solid rgba(232,160,32,0.25)",
-                      background: "rgba(232,160,32,0.07)",
-                      boxShadow: "0 0 18px rgba(232,160,32,0.12)",
-                    }}
-                  >
-                    <Atom className="w-3.5 h-3.5 animate-pulse" style={{ color: "#E8A020" }} />
-                    <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase" style={{ color: "#E8A020" }}>
-                      PREMIUM JEE &amp; NEET STUDY PORTAL
-                    </span>
-                  </motion.div>
+                  <div className="flex flex-wrap gap-3">
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md"
+                      style={{
+                        border: "1px solid rgba(232,160,32,0.25)",
+                        background: "rgba(232,160,32,0.07)",
+                        boxShadow: "0 0 18px rgba(232,160,32,0.12)",
+                      }}
+                    >
+                      <Atom className="w-3.5 h-3.5 animate-pulse" style={{ color: "#E8A020" }} />
+                      <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase" style={{ color: "#E8A020" }}>
+                        PREMIUM JEE &amp; NEET STUDY PORTAL
+                      </span>
+                    </motion.div>
+
+                    <motion.a
+                      href="/countdown"
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.15 }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full border backdrop-blur-md cursor-pointer transition-all hover:scale-105"
+                      style={{
+                        border: "1px solid rgba(255,107,0,0.3)",
+                        background: "rgba(255,107,0,0.08)",
+                        boxShadow: "0 0 18px rgba(255,107,0,0.15)",
+                      }}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-[ping_1.5s_infinite]" />
+                      <span className="text-[10px] font-mono tracking-wider font-extrabold uppercase text-[#FF6B00]">
+                        ⚡ {daysLeft2027} DAYS TO JEE 2027
+                      </span>
+                    </motion.a>
+                  </div>
 
                   <motion.h1
                     initial={{ opacity: 0, y: 24 }}

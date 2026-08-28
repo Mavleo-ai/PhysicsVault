@@ -202,7 +202,7 @@ export default function PomodoroTimer({ studyData, onUpdate }) {
           {!isRunning && (
             <div className="flex items-center gap-3 mt-3">
               <button
-                onClick={() => adjustTime(-5)}
+                onClick={() => adjustTime(-1)}
                 className="w-7 h-7 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 transition-all text-xs font-bold flex items-center justify-center cursor-pointer"
               >
                 −
@@ -211,7 +211,7 @@ export default function PomodoroTimer({ studyData, onUpdate }) {
                 {mode === "focus" ? studyData.pomodoro.focusMinutes : mode === "break" ? studyData.pomodoro.breakMinutes : studyData.pomodoro.longBreakMinutes}m
               </span>
               <button
-                onClick={() => adjustTime(5)}
+                onClick={() => adjustTime(1)}
                 className="w-7 h-7 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:border-white/20 transition-all text-xs font-bold flex items-center justify-center cursor-pointer"
               >
                 +

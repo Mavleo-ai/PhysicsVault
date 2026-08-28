@@ -1,0 +1,24 @@
+{
+  "short_name": "JEE Clock",
+  "name": "JEE Countdown Clock",
+  "description": "Every day counts. Countdown to JEE 2027 and JEE 2028.",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192' width='192' height='192'><rect width='192' height='192' rx='40' fill='%230A0A0F'/><circle cx='96' cy='96' r='60' fill='none' stroke='%23FF6B00' stroke-width='8'/><path d='M96 50v46l30 20' stroke='%23FF6B00' stroke-width='8' stroke-linecap='round' fill='none'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'><rect width='512' height='512' rx='100' fill='%230A0A0F'/><circle cx='256' cy='256' r='160' fill='none' stroke='%23FF6B00' stroke-width='20'/><path d='M256 130v126l80 54' stroke='%23FF6B00' stroke-width='20' stroke-linecap='round' fill='none'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/countdown",
+  "background_color": "#0A0A0F",
+  "theme_color": "#0A0A0F",
+  "display": "standalone",
+  "orientation": "portrait"
+}
